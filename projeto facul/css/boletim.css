@@ -1,0 +1,72 @@
+@import url('aluno.css');
+
+/* Ativa o menu da página */
+.sidebar a.active {
+    background-color: #186D6A;
+}
+
+/* Esconde sidebar quando clica no hambúrguer */
+.container.full-width .sidebar {
+    display: none;
+}
+
+.main-content {
+    background-color: #ffffff;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.main-content h2 {
+    color: #2C1B17;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #FDFDFD;
+}
+
+thead {
+    background-color: #D69D2A;
+    color: white;
+}
+
+thead th {
+    padding: 12px;
+    text-align: center;
+}
+
+tbody td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    text-align: center;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+tbody td:last-child {
+    font-weight: bold;
+    color: #186D6A;
+}
+
+.details-row {
+    display: none;
+    background-color: #f9f9f9;
+}
+
+.details-content {
+    padding: 10px;
+}

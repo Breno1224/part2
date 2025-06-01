@@ -1,0 +1,177 @@
+/* css/calendario_novo.css */
+
+.main-content h2.page-title-calendar {
+    text-align: center;
+    font-size: 1.7rem;
+    margin-bottom: 1.5rem;
+    /* color e border-bottom virão do tema através de .main-content h2 */
+}
+
+.calendar-view-container {
+    margin-bottom: 2rem;
+    padding: 1rem; 
+}
+
+.calendar-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0 1rem 0;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #eee; /* Será sobrescrito pelo tema */
+}
+
+.calendar-navigation h3 { 
+    font-size: 1.4em; 
+    margin: 0 1rem;
+    min-width: 150px; 
+    text-align: center;
+}
+
+.calendar-navigation button {
+    background-color: transparent;
+    border: none; 
+    padding: 0.6rem 1rem;
+    cursor: pointer;
+    font-size: 1.5rem; 
+    font-weight: bold;
+    border-radius: 4px;
+    transition: background-color 0.2s; 
+}
+/* Os temas devem estilizar o hover dos botões. Exemplo para tema padrão:
+body.theme-padrao .calendar-navigation button { color: #208A87; }
+body.theme-padrao .calendar-navigation button:hover { background-color: #e0f2f1; } 
+*/
+
+.calendar-table {
+    width: 100%;
+    border-collapse: separate; 
+    border-spacing: 5px; 
+    table-layout: fixed; 
+}
+
+.calendar-table th { 
+    padding: 0.8rem 0.2rem;
+    text-align: center;
+    font-weight: 500;
+    font-size: 0.85em; 
+}
+
+.calendar-table td.day-cell {
+    height: 85px; 
+    padding: 5px; 
+    text-align: right;
+    vertical-align: top;
+    border: 1px solid #ddd; 
+    border-radius: 4px;
+    cursor: pointer;
+    position: relative; 
+    font-size: 0.9em;
+    transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+}
+.calendar-table td.day-cell .day-number { 
+    display: inline-block;
+    padding: 3px 5px;
+    line-height: 1;
+    border-radius: 3px; 
+}
+
+.calendar-table td.day-cell.empty {
+    background-color: transparent !important;
+    border-color: transparent !important;
+    cursor: default;
+    box-shadow: none !important;
+}
+
+.calendar-table td.day-cell:not(.empty):hover {
+    transform: scale(1.02); 
+}
+
+/* ESTILO PARA O DIA ATUAL (HOJE) */
+.calendar-table td.day-cell.today .day-number {
+    background-color: #D69D2A; /* Destaque no NÚMERO do dia atual */
+    color: white !important;
+    font-weight: bold;
+    border-radius: 50%; 
+    padding: 4px 7px; 
+}
+/* Para o fundo da CÉLULA do dia atual, adicione no temas_globais.css:
+body.theme-padrao .calendar-table td.day-cell.today { background-color: #fffde7; border-color: #D69D2A; } 
+body.theme-darkmode .calendar-table td.day-cell.today { background-color: #3a3a3c; border-color: #bb86fc; }
+*/
+
+
+/* ESTILO PARA O DIA SELECIONADO (COM BORDA) */
+.calendar-table td.day-cell.selected {
+    border-width: 2px !important; 
+    font-weight: bold; 
+}
+/* Para a cor da borda e fundo do dia selecionado, adicione no temas_globais.css:
+body.theme-padrao .calendar-table td.day-cell.selected { border-color: #208A87 !important; background-color: #e0f2f1; } 
+body.theme-darkmode .calendar-table td.day-cell.selected { border-color: #03dac6 !important; background-color: #2a2a2e; }
+*/
+
+/* Se o dia for HOJE E SELECIONADO */
+.calendar-table td.day-cell.today.selected .day-number {
+    background-color: #D69D2A; /* Mantém o destaque de "hoje" no número */
+    color: white !important;
+}
+/* Os temas devem garantir que o texto do número selecionado seja visível no fundo da célula selecionada:
+body.theme-padrao .calendar-table td.day-cell.selected .day-number { color: #186D6A; }
+body.theme-darkmode .calendar-table td.day-cell.selected .day-number { color: #e0e0e0; }
+*/
+
+
+/* BOLINHA DOURADA INDICADORA DE EVENTO */
+.calendar-table td.day-cell.has-event::after {
+    content: '';
+    display: block;
+    width: 10px; 
+    height: 10px;
+    background-color: #FFD700; /* DOURADO */
+    border: 1px solid #DAA520; 
+    border-radius: 50%;
+    position: absolute;
+    bottom: 6px;
+    left: 6px; 
+}
+
+/* Seção de Gerenciamento de Eventos */
+.event-section-container {
+    margin-top: 2rem;
+}
+.event-section-container h3 { 
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+}
+.event-form-area {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #eee; /* Será sobrescrito pelo tema */
+}
+.event-form-area label {
+    display: block;
+    font-size: 0.9rem;
+    margin: 0.8rem 0 0.3rem 0;
+}
+.event-form-area label strong { font-size: 1rem; }
+.event-form-area input[type="text"] {
+    width: calc(100% - 22px); 
+    padding: 0.7rem;
+    margin-bottom: 0.8rem;
+    box-sizing: border-box;
+    font-size: 0.95rem;
+}
+.event-form-area button {
+    padding: 0.7rem 1.2rem;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+.event-display-area h4 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+.event-display-area ul { list-style: none; padding: 0; max-height: 150px; overflow-y: auto; margin-top: 0.5rem; }
+.event-display-area li { padding: 0.7rem 0.5rem; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+.event-display-area li:last-child { border-bottom: none; }

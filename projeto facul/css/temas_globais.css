@@ -1,0 +1,298 @@
+/* css/temas_globais.css */
+
+/* Fontes do Google - Certifique-se de que estão linkadas no <head> do seu HTML */
+
+/* =========================================== */
+/* ESTILOS GLOBAIS PARA TEMAS                */
+/* =========================================== */
+
+/* ----- Tema Padrão (Base de Referência) ----- */
+body.theme-padrao {
+    background-color: #F3F3F3; 
+    color: #2C1B17; 
+    font-family: 'Arial', sans-serif;
+    /* font-size: 16px; REMOVIDO - Deixar o CSS base ou navegador definir o padrão */
+}
+body.theme-padrao header { 
+    background-color: #208A87; 
+    color: white;
+    border-bottom: none; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+}
+body.theme-padrao header h1 { color: white; font-size: 1.5rem; text-shadow: none;}
+body.theme-padrao header button#logoutBtnHeader, 
+body.theme-padrao header button { 
+    background-color: #D69D2A; color: white; border: none;
+    padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: bold;
+}
+body.theme-padrao header button#logoutBtnHeader:hover,
+body.theme-padrao header button:hover { background-color: #C58624; }
+
+body.theme-padrao .sidebar { 
+    background-color: #208A87; 
+}
+body.theme-padrao .sidebar ul li a {
+    color: white;
+    font-family: 'Arial', sans-serif; 
+    font-size: 0.95rem; 
+    padding: 1rem; 
+}
+body.theme-padrao .sidebar ul li a i {
+    color: white;
+    font-size: 1.1rem; 
+    margin-right: 10px;
+    width: 20px; 
+    text-align: center;
+}
+body.theme-padrao .sidebar ul li a:hover, 
+body.theme-padrao .sidebar ul li a.active {
+    background-color: #186D6A; 
+    color: white;
+}
+body.theme-padrao .sidebar ul li a.active i { color: white; }
+
+
+body.theme-padrao .main-content { background-color: #F3F3F3; padding: 1.5rem; }
+body.theme-padrao .main-content h2, body.theme-padrao .main-content h3, body.theme-padrao .main-content h4 { color: #2C1B17; }
+body.theme-padrao .main-content h2.page-title { border-bottom: 2px solid #D69D2A; } 
+body.theme-padrao .main-content .dashboard-section, 
+body.theme-padrao .main-content .form-section,
+body.theme-padrao .main-content .list-section,
+body.theme-padrao .profile-section {
+    background-color: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+    border: 1px solid #e0e0e0; border-radius: 5px;
+}
+body.theme-padrao .main-content .profile-section h3 { color: #186D6A; border-bottom-color: #eee; }
+body.theme-padrao .main-content .profile-section li { border-left-color: #208A87; background-color: #f8f9fa; }
+body.theme-padrao .main-content .edit-section summary { 
+    color: #186D6A; background-color:#f0f8ff; padding: 0.6rem 0.8rem; 
+    font-weight: bold; cursor: pointer; display: inline-block; border-radius:4px; font-size: 0.95rem; 
+}
+body.theme-padrao .main-content .edit-section summary i.fas { margin-right: 6px; font-size: 0.95rem; }
+body.theme-padrao .main-content .edit-section summary:hover { background-color:#e6f2ff; }
+
+body.theme-padrao .main-content button, 
+body.theme-padrao .main-content input[type="submit"],
+body.theme-padrao .main-content button[type="button"] {
+    background-color: #208A87; color: white; border:none; padding: 0.7rem 1.2rem; border-radius:4px; cursor:pointer; font-size: 0.95rem;
+}
+body.theme-padrao .main-content button:hover, 
+body.theme-padrao .main-content input[type="submit"]:hover,
+body.theme-padrao .main-content button[type="button"]:hover { background-color: #186D6A; }
+
+body.theme-padrao .main-content input[type="text"], 
+body.theme-padrao .main-content input[type="date"],
+body.theme-padrao .main-content input[type="email"],
+body.theme-padrao .main-content input[type="password"],
+body.theme-padrao .main-content input[type="url"],
+body.theme-padrao .main-content input[type="file"],
+body.theme-padrao .main-content textarea,
+body.theme-padrao .main-content select {
+    border: 1px solid #ccc; background-color: white; color: #333; padding: 0.6rem; border-radius:4px; font-size: 0.95rem;
+}
+body.theme-padrao .main-content table { border-collapse: collapse; width: 100%; }
+body.theme-padrao .main-content th { background-color: #f2f2f2; }
+body.theme-padrao .main-content th, body.theme-padrao .main-content td { border: 1px solid #ddd; padding: 0.75rem; }
+
+/* Lembretes e Pendências - Tema Padrão (FONTE AUMENTADA) */
+body.theme-padrao .reminders-list li { padding: 0.9rem 0; border-bottom: 1px solid #eee; } /* Aumentado padding */
+body.theme-padrao .reminders-list .reminder-text,
+body.theme-padrao .reminders-list .reminder-text a {
+    font-size: 1.05rem; /* AUMENTADO para ser mais visível (ex: ~16.8px se base for 16px) */
+    line-height: 1.6; 
+}
+body.theme-padrao .reminders-list .reminder-text a { 
+    color: #D69D2A; 
+    font-weight: 500; text-decoration: none; 
+}
+body.theme-padrao .reminders-list .reminder-text a:hover { color: #C58624; text-decoration: underline; }
+
+
+/* ----- Tema 8-Bit Retrô ----- */
+body.theme-8bit {
+    background-color: #2A2A2A; color: #E0E0E0; font-family: 'Press Start 2P', cursive;
+    font-size: 10px; /* Base para 8-bit - este é o que faz tudo ficar pequeno neste tema */
+    line-height: 1.6; image-rendering: pixelated;
+}
+/* ... (header, sidebar, main-content e outros estilos gerais do theme-8bit como na resposta anterior) ... */
+/* As correções de tamanho para sidebar, header h1, e .edit-section summary já foram aplicadas */
+body.theme-8bit header { background-color: #1C1C1C !important; border-bottom: 4px solid #FF9500 !important; box-shadow: 0 3px 0 #000000 !important; }
+body.theme-8bit header h1 { color: #00E0E0 !important; text-shadow: 1px 1px #000000; font-size: 1.2rem !important; font-family: 'Press Start 2P', cursive !important; }
+body.theme-8bit header button#logoutBtnHeader, body.theme-8bit header button {
+    background-color: #FF9500 !important; color: #1C1C1C !important; text-shadow: none !important;
+    border: 2px solid #000000 !important; box-shadow: 2px 2px 0px #000000 !important;
+    padding: 8px 12px !important; font-family: 'Press Start 2P', cursive !important; font-size: 10px !important;
+}
+body.theme-8bit header button#logoutBtnHeader:hover, body.theme-8bit header button:hover { background-color: #FFB03B !important; }
+body.theme-8bit .sidebar { background-color: #1C1C1C !important; border-right: 4px solid #FF9500 !important; box-shadow: 3px 0 0 #000000 !important; }
+body.theme-8bit .sidebar ul li a {
+    color: #00E0E0 !important; text-shadow: 1px 1px #000000;
+    font-family: 'Press Start 2P', cursive !important; 
+    font-size: 12px !important; 
+    padding: 12px 1rem !important; 
+}
+body.theme-8bit .sidebar ul li a i { font-size: 12px !important; margin-right: 8px !important; vertical-align: baseline; width:auto; text-align:left; }
+body.theme-8bit .sidebar a:hover, body.theme-8bit .sidebar a.active { background-color: #333333 !important; color: #FFFF55 !important; }
+body.theme-8bit .sidebar a.active i { color: #FFFF55 !important; }
+body.theme-8bit .main-content { background-color: #2A2A2A; padding: 12px; }
+body.theme-8bit .main-content h2, body.theme-8bit .main-content h3, body.theme-8bit .main-content h4 { color: #FF9500; text-shadow: 1px 1px #000; border-bottom-color: #00E0E0; font-size: 1.2em; }
+body.theme-8bit .main-content h2.page-title { font-size: 1.4em; }
+body.theme-8bit .main-content .dashboard-section, body.theme-8bit .main-content .form-section,
+body.theme-8bit .main-content .list-section, body.theme-8bit .profile-section { 
+    background-color: #383838; border: 3px solid #00E0E0; box-shadow: 4px 4px 0px #000000; padding: 12px; 
+}
+body.theme-8bit .main-content p, body.theme-8bit .main-content li { color: #D0D0D0; } /* Font size é 10px herdado */
+body.theme-8bit .main-content strong { color: #00E0E0; }
+body.theme-8bit .main-content .edit-section summary {
+    color: #00E0E0; background-color: #383838; border: 2px solid #FF9500; padding: 8px 14px;
+    font-size: 12px; display: inline-flex; align-items: center; cursor: pointer;
+    text-shadow: 1px 1px #000000; margin-bottom: 10px; line-height: 1.5; font-weight: normal;
+}
+body.theme-8bit .main-content .edit-section summary:hover { background-color: #484848; color: #FFFF55; }
+body.theme-8bit .main-content .edit-section summary i.fas { font-size: 12px; margin-right: 8px; }
+body.theme-8bit .main-content .edit-section form { border: 2px solid #00E0E0; padding: 12px; background-color: #303030; }
+body.theme-8bit .main-content label { color: #00E0E0; text-shadow: 1px 1px #000; font-size: 1.1em; }
+body.theme-8bit .main-content input[type="text"], body.theme-8bit .main-content input[type="date"],
+body.theme-8bit .main-content input[type="email"], body.theme-8bit .main-content input[type="password"],
+body.theme-8bit .main-content input[type="url"], body.theme-8bit .main-content input[type="file"],
+body.theme-8bit .main-content textarea, body.theme-8bit .main-content select {
+    background-color: #1C1C1C; color: #00E0E0; border: 2px solid #FF9500; padding: 8px;
+    font-family: 'Press Start 2P', cursive; font-size: 1em; /* 10px */
+}
+body.theme-8bit .main-content ::placeholder { color: #888; }
+body.theme-8bit .main-content button, body.theme-8bit .main-content input[type="submit"],
+body.theme-8bit .main-content button[type="button"] {
+    background-color: #FF9500; color: #1C1C1C; text-shadow: none;
+    border: 2px solid #000000; box-shadow: 2px 2px 0px #000000;
+    padding: 10px 14px; font-family: 'Press Start 2P', cursive; font-size: 1em; /* 10px */
+}
+body.theme-8bit .main-content button:hover, body.theme-8bit .main-content input[type="submit"]:hover,
+body.theme-8bit .main-content button[type="button"]:hover { background-color: #FFB03B; }
+body.theme-8bit .main-content table { border: 2px solid #00E0E0 !important; }
+body.theme-8bit .main-content th { background-color: #1C1C1C !important; color: #FF9500 !important; border: 1px dashed #00E0E0 !important; text-shadow: 1px 1px #000; }
+body.theme-8bit .main-content td { border: 1px dashed #555 !important; color: #E0E0E0 !important; }
+
+/* Lembretes e Pendências - Tema 8-Bit (FONTE AUMENTADA) */
+body.theme-8bit .reminders-list li { padding: 8px 0; border-bottom: 2px dotted #555; }
+body.theme-8bit .reminders-list .reminder-text,
+body.theme-8bit .reminders-list .reminder-text a {
+    font-size: 12px; /* AUMENTADO para 12px para visibilidade, mesmo que a base seja 10px */
+    line-height: 1.6; 
+}
+body.theme-8bit .reminders-list .reminder-text a { color: #FF9500; text-decoration: none; }
+body.theme-8bit .reminders-list .reminder-text a:hover { color: #FFB03B; }
+
+body.theme-8bit .status-message, body.theme-8bit .status-message-profile { border: 2px solid #00E0E0; text-shadow: 1px 1px #000; }
+body.theme-8bit .status-success { background-color: #1E4620; color: #90EE90; border-color: #90EE90; }
+body.theme-8bit .status-error { background-color: #501E1E; color: #FF8080; border-color: #FF8080; }
+
+
+/* ----- Tema Modo Escuro Simples ----- */
+body.theme-darkmode {
+    background-color: #1c1c1e; color: #e0e0e0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    /* font-size: 0.95rem; REMOVIDO - Deixar herdar ou ser definido pelo CSS base */
+}
+body.theme-darkmode header { background-color: #252526 !important; border-bottom: 1px solid #3a3a3c !important; color: #d4d4d4 !important; }
+body.theme-darkmode header h1 { color: #e0e0e0 !important; font-size: 1.5rem; }
+body.theme-darkmode header button#logoutBtnHeader, body.theme-darkmode header button { background-color: #bb86fc !important; color: #121212 !important; }
+body.theme-darkmode header button#logoutBtnHeader:hover, body.theme-darkmode header button:hover { background-color: #9f71d6 !important;}
+
+body.theme-darkmode .sidebar { background-color: #252526 !important; }
+body.theme-darkmode .sidebar ul li a {
+    color: #cccccc !important;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+    font-size: 0.95rem !important; 
+    padding: 1rem !important;
+}
+body.theme-darkmode .sidebar ul li a i {
+    color: #cccccc !important;
+    font-size: 1.1rem !important; 
+    margin-right: 10px !important; width: 20px; text-align: center;
+}
+body.theme-darkmode .sidebar a:hover, body.theme-darkmode .sidebar a.active { background-color: #3a3a3c !important; color: #ffffff !important; }
+body.theme-darkmode .sidebar a.active i { color: #ffffff !important; }
+
+body.theme-darkmode .main-content { background-color: #1c1c1e; padding: 1.5rem; }
+body.theme-darkmode .main-content h2, body.theme-darkmode .main-content h3, body.theme-darkmode .main-content h4 { color: #bb86fc; }
+body.theme-darkmode .main-content h2.page-title { border-bottom: 2px solid #bb86fc; }
+body.theme-darkmode .main-content p { color: #c0c0c0; }
+body.theme-darkmode .main-content .dashboard-section, body.theme-darkmode .main-content .form-section,
+body.theme-darkmode .main-content .list-section, body.theme-darkmode .profile-section {
+    background-color: #252526; border: 1px solid #3a3a3c; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+body.theme-darkmode .main-content label { color: #c0c0c0; }
+body.theme-darkmode .main-content input[type="text"], body.theme-darkmode .main-content input[type="date"],
+body.theme-darkmode .main-content input[type="email"], body.theme-darkmode .main-content input[type="password"],
+body.theme-darkmode .main-content input[type="url"], body.theme-darkmode .main-content input[type="file"],
+body.theme-darkmode .main-content textarea, body.theme-darkmode .main-content select {
+    background-color:#333333; color:#e0e0e0; border: 1px solid #555555; padding: 0.6rem; border-radius:4px; font-size: 0.9rem;
+}
+body.theme-darkmode .main-content ::placeholder { color: #888; }
+body.theme-darkmode .main-content button, body.theme-darkmode .main-content input[type="submit"],
+body.theme-darkmode .main-content button[type="button"] {
+    background-color: #bb86fc; color: #121212; border:none; padding: 0.7rem 1.2rem; border-radius:4px; font-size: 0.9rem;
+}
+body.theme-darkmode .main-content button:hover, body.theme-darkmode .main-content input[type="submit"]:hover,
+body.theme-darkmode .main-content button[type="button"]:hover { background-color: #9f71d6; }
+body.theme-darkmode .main-content table { border-color: #3a3a3c; }
+body.theme-darkmode .main-content th { background-color: #2f2f31; color: #bb86fc; border-color: #3a3a3c; }
+body.theme-darkmode .main-content td { border-color: #3a3a3c; color: #c0c0c0; }
+
+/* Lembretes e Pendências - Tema Modo Escuro (FONTE AUMENTADA) */
+body.theme-darkmode .reminders-list li { padding: 0.9rem 0; border-bottom: 1px solid #3a3a3c;} /* Aumentado padding */
+body.theme-darkmode .reminders-list .reminder-text,
+body.theme-darkmode .reminders-list .reminder-text a { 
+    font-size: 1.05rem; /* AUMENTADO para ser mais visível */
+    color: #d0d0d0; 
+    line-height: 1.6;
+}
+body.theme-darkmode .reminders-list .reminder-text a { color: #FF9500; font-weight: 500; text-decoration: none; }
+body.theme-darkmode .reminders-list .reminder-text a:hover { color: #FFB03B; text-decoration: underline; }
+
+body.theme-darkmode .status-message, body.theme-darkmode .status-message-profile { border: 1px solid #3a3a3c; }
+body.theme-darkmode .status-success { background-color: #2a3b2c; color: #a5d6a7; border-color: #385a3a; }
+body.theme-darkmode .status-error { background-color: #4d2e30; color: #ef9a9a; border-color: #7f3c3e; }
+
+
+/* ----- Tema Natureza Calma ----- */
+body.theme-natureza { 
+    background-color: #F0F4F0; color: #3E5622; font-family: 'Georgia', serif; line-height: 1.7; 
+    /* font-size: 16px; REMOVIDO */
+}
+body.theme-natureza header, body.theme-natureza .sidebar { background-color: #556B2F !important; border-bottom: 3px solid #A0A080 !important; }
+body.theme-natureza header h1, body.theme-natureza .sidebar a { color: #F5F5DC !important; }
+body.theme-natureza .sidebar ul li a { font-size: 0.95rem !important; padding: 1rem !important; font-family: 'Georgia', serif !important;}
+body.theme-natureza .sidebar ul li a i { font-size: 1.1rem !important; margin-right:10px; width:20px; text-align:center; }
+body.theme-natureza .sidebar a:hover, body.theme-natureza .sidebar a.active { background-color: #6B8E23 !important; color: #FFFFF0 !important; }
+body.theme-natureza .main-content { background-color: #F0F4F0; }
+/* ... (outros estilos globais para Natureza conforme padrão) ... */
+/* Lembretes e Pendências - Tema Natureza (FONTE AUMENTADA) */
+body.theme-natureza .reminders-list li { padding: 0.9rem 0; border-bottom: 1px solid #C0D0C0;} /* Aumentado padding */
+body.theme-natureza .reminders-list .reminder-text,
+body.theme-natureza .reminders-list .reminder-text a { font-size: 1.05rem; line-height: 1.6; } /* AUMENTADO */
+body.theme-natureza .reminders-list .reminder-text a { color: #D88D0C; text-decoration:none; }
+body.theme-natureza .reminders-list .reminder-text a:hover { color: #B36B00; text-decoration:underline;}
+
+
+/* ----- Tema Acadêmico Clássico ----- */
+body.theme-academico { 
+    background-color: #FDF5E6; color: #4A3B31; font-family: 'Garamond', 'Times New Roman', serif; line-height: 1.7; 
+    /* font-size: 16px; REMOVIDO */
+}
+body.theme-academico header, body.theme-academico .sidebar { background-color: #5D4037 !important; border-bottom: 3px solid #A1887F !important;}
+body.theme-academico header h1, body.theme-academico .sidebar a { color: #FFF3E0 !important; }
+body.theme-academico .sidebar ul li a { font-size: 0.95rem !important; padding: 1rem !important; font-family: 'Garamond', 'Times New Roman', serif !important;}
+body.theme-academico .sidebar ul li a i { font-size: 1.1rem !important; margin-right:10px; width:20px; text-align:center; }
+body.theme-academico .sidebar a:hover, body.theme-academico .sidebar a.active { background-color: #795548 !important; color: #FFFFFF !important;}
+body.theme-academico .main-content { background-color: #FDF5E6; }
+/* ... (outros estilos globais para Acadêmico conforme padrão) ... */
+/* Lembretes e Pendências - Tema Acadêmico (FONTE AUMENTADA) */
+body.theme-academico .reminders-list li { padding: 0.9rem 0; border-bottom: 1px solid #BCAAA4; } /* Aumentado padding */
+body.theme-academico .reminders-list .reminder-text,
+body.theme-academico .reminders-list .reminder-text a { font-size: 1.05rem; line-height: 1.6;} /* AUMENTADO */
+body.theme-academico .reminders-list .reminder-text a { color: #B85B2F; text-decoration:none; }
+body.theme-academico .reminders-list .reminder-text a:hover { color: #8C4220; text-decoration:underline; }
+
+/* Estilos específicos de PROFILE PAGE (já definidos antes, apenas para referência se precisar mover) */
+body .profile-photo { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border-width: 4px; border-style: solid; /* box-shadow e border-color são definidos por tema */}
+/* ... */
