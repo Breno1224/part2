@@ -1,0 +1,95 @@
+/* Coloque estas regras no seu ARQUIVO CSS BASE 
+   (ex: css/coordenacao.css, css/professor.css, css/aluno.css) */
+
+/* Reset básico para garantir consistência */
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    box-sizing: border-box; /* Garante que padding e border não aumentem o tamanho total */
+}
+
+*, *:before, *:after {
+    box-sizing: inherit;
+}
+
+body {
+    display: flex;
+    flex-direction: column; /* Para header, container, footer ficarem empilhados */
+    min-height: 100vh;
+    /* font-family, color, background-color virão de temas_globais.css */
+}
+
+header {
+    /* Seus estilos de header: background-color, color, padding, display: flex, etc. 
+       Muitos virão de temas_globais.css */
+    padding: 1rem; /* Exemplo */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0; /* Para o header não encolher */
+}
+
+.container {
+    display: flex;  /* ESSENCIAL: Coloca a sidebar e o main-content lado a lado */
+    flex-grow: 1;   /* Faz o .container ocupar o espaço vertical restante */
+    overflow: hidden; /* Para evitar barras de rolagem indesejadas se a sidebar deslizar */
+}
+
+.sidebar {
+    width: 240px;        /* Largura da sua sidebar */
+    flex-shrink: 0;      /* Impede que a sidebar encolha com pouco conteúdo */
+    transition: margin-left 0.3s ease-in-out; /* Animação suave ao esconder/mostrar */
+    /* background-color, color virão de temas_globais.css */
+    /* overflow-y: auto; Adicione se o conteúdo da sidebar puder ser maior que a tela */
+}
+
+.sidebar.hidden {
+    margin-left: -240px; /* Empurra a sidebar para fora da tela (igual à largura) */
+    /* Se você preferir esconder com transform: */
+    /* transform: translateX(-100%); */
+    /* Para transform, você pode precisar de width: 0; e overflow: hidden; na sidebar.hidden */
+}
+
+.main-content {
+    flex-grow: 1;        /* Faz o conteúdo principal ocupar o espaço restante */
+    padding: 1.5rem;     /* Espaçamento interno do conteúdo principal */
+    overflow-y: auto;    /* Adiciona barra de rolagem se o conteúdo for maior que a tela */
+    /* background-color, color virão de temas_globais.css */
+    /* A transição aqui não é estritamente necessária se o main-content usa flex-grow
+       e a sidebar é movida com margin-left negativo. */
+    /* transition: margin-left 0.3s ease-in-out; */
+}
+
+/* A classe .full-width no .container (id="pageContainer") é controlada pelo JS.
+   Se a sidebar usa margin-left negativo para se esconder, o .main-content com flex-grow:1
+   se ajustará automaticamente. A classe .full-width no container pode ser usada para
+   outros ajustes finos se necessário, mas pode não ser crucial para o main-content se expandir.
+*/
+.container.full-width .main-content {
+    /* Geralmente, nenhuma regra específica é necessária aqui se usando flex-grow
+       e a sidebar é escondida com margin-left negativo. */
+    /* Se a sidebar fosse escondida com display:none e o main-content tivesse um margin-left fixo,
+       você precisaria de: margin-left: 0; */
+}
+
+/* Estilos básicos para os links da sidebar (aparência virá dos temas) */
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.sidebar ul li a {
+    display: block;
+    padding: 1rem; /* Espaçamento interno dos links */
+    text-decoration: none;
+    /* color, font-size, font-family virão de temas_globais.css */
+    border-bottom: 1px solid rgba(0,0,0,0.1); /* Linha sutil, será afetada pelo tema */
+}
+.sidebar ul li a i {
+    margin-right: 10px; /* Espaço entre ícone e texto */
+    width: 20px; /* Para alinhar os textos se os ícones tiverem larguras diferentes */
+    text-align: center;
+     /* color, font-size virão de temas_globais.css */
+}
+/* Estilo de link ativo e hover virá de temas_globais.css */
