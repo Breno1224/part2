@@ -8,7 +8,6 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'coordenacao') {
 
 $nome_coordenador = $_SESSION['usuario_nome'];
 $coordenador_id = $_SESSION['usuario_id']; // Essencial para o chat
-// $_SESSION['role'] é 'coordenacao', será usado no JS do chat
 
 $currentPageIdentifier = 'painel_coordenacao';
 $tema_global_usuario = isset($_SESSION['tema_usuario']) ? $_SESSION['tema_usuario'] : 'padrao'; 
@@ -18,27 +17,60 @@ $tema_global_usuario = isset($_SESSION['tema_usuario']) ? $_SESSION['tema_usuari
 <head>
     <meta charset="UTF-8">
     <title>Painel da Coordenação - ACADMIX</title>
-    <link rel="stylesheet" href="css/professor.css"> <link rel="stylesheet" href="css/temas_globais.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/coordenacao.css"> <link rel="stylesheet" href="css/temas_globais.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <?php if ($tema_global_usuario === '8bit'): ?>
         <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <?php endif; ?>
     <style>
-        /* Estilos do painel da coordenação */
-        .main-content .welcome-message-coordenador { text-align: left; font-size: 1.6rem; margin-bottom: 1.5rem; font-weight: 500; }
-        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
-        .dashboard-card { border-radius: 8px; padding: 1.5rem; text-align: center; text-decoration: none; transition: transform 0.2s, box-shadow 0.2s; }
-        .dashboard-card:hover { transform: translateY(-5px); }
-        .dashboard-card i { font-size: 3rem; margin-bottom: 1rem; display: block; }
-        .dashboard-card span { font-size: 1.1rem; font-weight: bold; }
-        /* Cores específicas dos ícones dos cards (se não forem controladas pelo tema) */
+        /* Estilos ESTRUTURAIS e específicos do painel da coordenação. 
+           Cores de fundo, texto e sombras dos cards devem vir de .card em temas_globais.css */
+
+        .main-content .welcome-message-coordenador { 
+            text-align: left; 
+            font-size: 1.6rem; 
+            margin-bottom: 1.5rem; 
+            font-weight: 500; 
+            /* color: var(--text-color); /* Cor do texto virá do tema */
+        }
+        .dashboard-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+            gap: 1.5rem; 
+        }
+        .dashboard-card { 
+            /* background-color, box-shadow, color e border devem ser definidos pela classe .card em temas_globais.css */
+            border-radius: 8px; 
+            padding: 1.5rem; 
+            text-align: center; 
+            text-decoration: none; 
+            transition: transform 0.2s, box-shadow 0.2s; 
+        }
+        .dashboard-card:hover { 
+            transform: translateY(-5px); 
+            /* box-shadow no hover também deve ser definido por .card:hover no tema */
+        }
+        .dashboard-card i { 
+            font-size: 3rem; 
+            margin-bottom: 1rem; 
+            display: block; 
+        }
+        .dashboard-card span { 
+            font-size: 1.1rem; 
+            font-weight: bold; 
+            display: block; /* Garante que o span ocupe a largura para centralização, se necessário */
+             /* A cor do span virá da cor do texto do .card, definida pelo tema */
+        }
+
+        /* Cores específicas dos ÍCONES dos cards (mantidas como design específico do card) */
         .card-aluno i { color: #208A87; } 
         .card-professor i { color: #D69D2A; } 
         .card-comunicado i { color: #5D3A9A; } 
         .card-turma i { color: #C54B6C; } 
         .card-disciplina i { color: #28a745; } 
 
-        /* --- INÍCIO CSS NOVO CHAT ACADÊMICO --- */
+        /* --- CSS NOVO CHAT ACADÊMICO --- */
         .chat-widget-acad { position: fixed; bottom: 0; right: 20px; width: 320px; border-top-left-radius: 10px; border-top-right-radius: 10px; box-shadow: 0 -2px 10px rgba(0,0,0,0.15); z-index: 1000; overflow: hidden; transition: height 0.3s ease-in-out; }
         .chat-widget-acad.chat-collapsed { height: 45px; }
         .chat-widget-acad.chat-expanded { height: 450px; }
@@ -182,11 +214,11 @@ $tema_global_usuario = isset($_SESSION['tema_usuario']) ? $_SESSION['tema_usuari
             console.warn("Chat: Papel do usuário não reconhecido:", currentUserSessionRole);
         }
         
-        const currentUserTurmaIdForStudent = 0; // Coordenador não tem uma turma principal para o chat
+        const currentUserTurmaIdForStudent = 0; 
 
         const defaultUserPhoto = 'img/alunos/default_avatar.png';
         const defaultProfessorPhoto = 'img/professores/default_avatar_prof.png'; 
-        const defaultCoordenadorPhoto = 'img/coordenadores/default_avatar.png'; // Crie ou ajuste o caminho
+        const defaultCoordenadorPhoto = 'img/coordenadores/default_avatar.png'; 
 
         const chatWidget = document.getElementById('academicChatWidget');
         const chatHeader = document.getElementById('chatWidgetHeaderAcad');
@@ -257,18 +289,14 @@ $tema_global_usuario = isset($_SESSION['tema_usuario']) ? $_SESSION['tema_usuari
         
         async function loadInitialContacts() { 
             let actionApi = '';
-            if (currentUserChatRole === 'aluno') { // Embora esta seja a página de coordenação, o JS é genérico
+            if (currentUserChatRole === 'aluno') { 
                 actionApi = 'get_turma_users';
-                if (currentUserTurmaIdForStudent === 0) {
-                    userListUl.innerHTML = '<li>Turma não definida para aluno.</li>';
-                    return;
-                }
             } else if (currentUserChatRole === 'professor') {
                 actionApi = 'get_professor_contacts';
             } else if (currentUserChatRole === 'coordenador') {
                 actionApi = 'get_coordenador_contacts'; 
             } else {
-                userListUl.innerHTML = '<li>Lista de contatos não disponível para este perfil.</li>';
+                userListUl.innerHTML = '<li>Lista de contatos não disponível.</li>';
                 return;
             }
 
@@ -426,7 +454,7 @@ $tema_global_usuario = isset($_SESSION['tema_usuario']) ? $_SESSION['tema_usuari
             }
         }
         
-        if(chatHeader) { // Verifica se o elemento do chat existe antes de adicionar listeners
+        if(chatHeader) { 
             chatHeader.addEventListener('click', (event) => {
                 if (event.target.closest('#chatToggleBtnAcad') || event.target.id === 'chatToggleBtnAcad') {
                     toggleChat();

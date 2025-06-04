@@ -4,70 +4,142 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'coordenacao') {
     header("Location: index.html");
     exit();
 }
-include 'db.php';
-// Ajustando variáveis para o contexto da coordenação
+include 'db.php'; // Conexão com o banco
+
 $nome_coordenador = $_SESSION['usuario_nome'];
 $coordenador_id = $_SESSION['usuario_id']; // Essencial para o chat
 
-$currentPageIdentifier = 'comunicados_coord'; // Para a sidebar
-
-// PEGAR TEMA DA SESSÃO
+$currentPageIdentifier = 'ver_alunos_coord'; // Ajuste para o seu sidebar
 $tema_global_usuario = isset($_SESSION['tema_usuario']) ? $_SESSION['tema_usuario'] : 'padrao';
 
-// Buscar turmas para o select
-$turmas_result = mysqli_query($conn, "SELECT id, nome_turma FROM turmas ORDER BY nome_turma");
+// --- LÓGICA DE PROCESSAMENTO DE AÇÕES (EX: EXCLUIR ALUNO) ---
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    mysqli_autocommit($conn, FALSE); 
 
-// Buscar comunicados já enviados por esta coordenação
-$comunicados_enviados_sql = "
-    SELECT c.id, c.titulo, c.data_publicacao, c.publico_alvo, t.nome_turma
-    FROM comunicados c
-    LEFT JOIN turmas t ON c.turma_id = t.id
-    WHERE c.coordenador_id = ? -- Filtrar por coordenador_id
-    ORDER BY c.data_publicacao DESC LIMIT 10";
-$stmt_com_prepare = mysqli_prepare($conn, $comunicados_enviados_sql); // Nome da variável ajustado
-$comunicados_enviados_result_data = null; // Nome da variável ajustado
-if ($stmt_com_prepare) {
-    mysqli_stmt_bind_param($stmt_com_prepare, "i", $coordenador_id); // Usar $coordenador_id
-    mysqli_stmt_execute($stmt_com_prepare);
-    $comunicados_enviados_result_data = mysqli_stmt_get_result($stmt_com_prepare);
-} else {
-    error_log("Erro ao buscar comunicados enviados pela coordenação: " . mysqli_error($conn));
+    try {
+        if ($_POST['action'] === 'delete_aluno' && isset($_POST['aluno_id_delete'])) {
+            $aluno_id_to_delete = intval($_POST['aluno_id_delete']);
+
+            if ($aluno_id_to_delete > 0) {
+                // ANTES DE EXCLUIR: Considere o que fazer com registros dependentes em outras tabelas
+                // (notas, frequencia, chat_messages, etc.).
+                // Idealmente, o banco de dados tem constraints ON DELETE CASCADE ou ON DELETE SET NULL.
+                // Exemplo: Se quiser remover o aluno da turma antes de deletar (se turma_id em alunos não for ON DELETE CASCADE):
+                // $sql_desvincular = "UPDATE alunos SET turma_id = NULL WHERE id = ?";
+                // $stmt_desv = mysqli_prepare($conn, $sql_desvincular);
+                // mysqli_stmt_bind_param($stmt_desv, "i", $aluno_id_to_delete);
+                // mysqli_stmt_execute($stmt_desv);
+                // mysqli_stmt_close($stmt_desv);
+
+                // Excluir o aluno da tabela alunos
+                $sql_delete_aluno = "DELETE FROM alunos WHERE id = ?";
+                $stmt_delete = mysqli_prepare($conn, $sql_delete_aluno);
+                mysqli_stmt_bind_param($stmt_delete, "i", $aluno_id_to_delete);
+                if (mysqli_stmt_execute($stmt_delete)) {
+                    if (mysqli_stmt_affected_rows($stmt_delete) > 0) {
+                        $_SESSION['manage_aluno_status_message'] = "Aluno excluído com sucesso!";
+                        $_SESSION['manage_aluno_status_type'] = "status-success";
+                    } else {
+                        throw new Exception("Aluno não encontrado ou já excluído.");
+                    }
+                } else {
+                    throw new Exception("Erro ao excluir aluno: " . mysqli_stmt_error($stmt_delete));
+                }
+                mysqli_stmt_close($stmt_delete);
+                mysqli_commit($conn);
+            } else {
+                throw new Exception("ID do aluno inválido para exclusão.");
+            }
+        }
+        // Adicionar outras actions aqui se necessário
+
+    } catch (Exception $e) {
+        mysqli_rollback($conn);
+        $_SESSION['manage_aluno_status_message'] = "Erro: " . $e->getMessage();
+        $_SESSION['manage_aluno_status_type'] = "status-error";
+        error_log("Erro em coordenacao_ver_alunos.php (action): " . $e->getMessage());
+    }
+    mysqli_autocommit($conn, TRUE); 
+    header("Location: coordenacao_ver_alunos.php" . (isset($_POST['turma_id_contexto']) ? "?turma_id_focus=".$_POST['turma_id_contexto'] : "" )); // Redirecionar
+    exit();
 }
+// --- FIM LÓGICA DE PROCESSAMENTO DE AÇÕES ---
+
+
+// Buscar todas as turmas e seus respectivos alunos
+$todas_as_turmas_com_alunos = [];
+$sql_turmas = "SELECT id, nome_turma, ano_letivo, periodo FROM turmas ORDER BY ano_letivo DESC, nome_turma ASC";
+$result_turmas = mysqli_query($conn, $sql_turmas);
+
+if ($result_turmas) {
+    while ($turma = mysqli_fetch_assoc($result_turmas)) {
+        $turma_id_atual = $turma['id'];
+        $turma['alunos'] = [];
+
+        $sql_alunos_na_turma = "SELECT id, nome, email, foto_url FROM alunos WHERE turma_id = ? ORDER BY nome ASC";
+        $stmt_alunos = mysqli_prepare($conn, $sql_alunos_na_turma);
+        if ($stmt_alunos) {
+            mysqli_stmt_bind_param($stmt_alunos, "i", $turma_id_atual);
+            mysqli_stmt_execute($stmt_alunos);
+            $result_alunos_turma = mysqli_stmt_get_result($stmt_alunos);
+            while ($aluno_data = mysqli_fetch_assoc($result_alunos_turma)) { // Renomeado $aluno para $aluno_data
+                $turma['alunos'][] = $aluno_data;
+            }
+            mysqli_stmt_close($stmt_alunos);
+        } else {
+            error_log("Erro ao buscar alunos da turma " . $turma_id_atual . " (coordenacao_ver_alunos.php): " . mysqli_error($conn));
+        }
+        $todas_as_turmas_com_alunos[] = $turma; 
+    }
+} else {
+    error_log("Erro ao buscar lista de turmas (coordenacao_ver_alunos.php): " . mysqli_error($conn));
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Enviar Comunicado - Coordenação ACADMIX</title>
-    <link rel="stylesheet" href="css/coordenacao.css"> <link rel="stylesheet" href="css/temas_globais.css"> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <title>Visualizar Alunos por Turma - ACADMIX</title>
+    <link rel="stylesheet" href="css/coordenacao.css"> 
+    <link rel="stylesheet" href="css/temas_globais.css"> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <?php if ($tema_global_usuario === '8bit'): ?>
         <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <?php endif; ?>
     <style>
-        /* Estilos da página coordenacao_lancar_comunicado.php */
-        .form-section, .list-section { 
-            margin-bottom: 2rem; padding: 1.5rem; border-radius: 8px; /* Ajustado border-radius */
+        .page-title { text-align: center; font-size: 1.8rem; margin-bottom: 1.5rem; }
+        .turma-accordion-header {
+            cursor: pointer;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            /* background-color e color virão do tema para .card */
         }
-        .form-section label { display: block; margin-top: 1rem; margin-bottom: 0.5rem; font-weight: bold; }
-        .form-section input[type="text"],
-        .form-section textarea,
-        .form-section select {
-            width: 100%; padding: 0.75rem; border-radius: 4px; box-sizing: border-box;
+        .turma-accordion-header h3 { margin: 0; font-size: 1.3rem; }
+        .turma-accordion-header .toggle-icon { transition: transform 0.3s ease; }
+        .turma-accordion-header.active .toggle-icon { transform: rotate(90deg); }
+        .turma-alunos-list {
+            display: none; /* Começa fechado */
+            padding-left: 1.5rem; /* Indentação para a lista de alunos */
+            margin-bottom: 1.5rem;
+            border-left: 3px solid var(--primary-color, #007bff); /* Linha visual para o conteúdo expandido */
         }
-        .form-section textarea { min-height: 150px; }
-        .form-section button[type="submit"] {
-            padding: 0.75rem 1.5rem; border: none; border-radius: 4px; cursor: pointer; 
-            font-size: 1rem; margin-top: 1.5rem;
-        }
-        .status-message { padding: 1rem; margin-bottom: 1rem; border-radius: 4px; text-align: center; }
-        /* .status-success e .status-error devem vir de temas_globais.css ou um CSS base */
-        .list-section table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        .list-section th, .list-section td { 
-            padding: 0.75rem; text-align: left; 
-        }
-        #turma_select_div { display: none; margin-top: 1rem; } 
+        .turma-alunos-list.active { display: block; }
 
-        /* --- INÍCIO CSS NOVO CHAT ACADÊMICO --- */
+        .aluno-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; padding-top: 1rem; }
+        .aluno-card { padding: 1rem; border-radius: 8px; display: flex; align-items: center; }
+        .aluno-photo { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; margin-right: 1rem; border: 2px solid var(--border-color-soft, #ddd); }
+        .aluno-info h4 { margin: 0 0 0.2rem 0; font-size: 1.05rem; }
+        .aluno-info p { margin: 0 0 0.4rem 0; font-size: 0.8rem; }
+        .aluno-actions .button { margin-top: 0.5rem; margin-right: 0.5rem; }
+        .no-data-message { padding: 1rem; text-align: center; border-radius: 4px; }
+        .status-message { padding: 1rem; margin-bottom: 1rem; border-radius: 4px; text-align: center; }
+
+        /* CSS do Chat (igual às outras páginas) */
         .chat-widget-acad { position: fixed; bottom: 0; right: 20px; width: 320px; border-top-left-radius: 10px; border-top-right-radius: 10px; box-shadow: 0 -2px 10px rgba(0,0,0,0.15); z-index: 1000; overflow: hidden; transition: height 0.3s ease-in-out; }
         .chat-widget-acad.chat-collapsed { height: 45px; }
         .chat-widget-acad.chat-expanded { height: 450px; }
@@ -102,13 +174,12 @@ if ($stmt_com_prepare) {
         #chatMessageInputAcad { flex-grow: 1; padding: 8px 12px; border: 1px solid var(--border-color, #ddd); border-radius: 20px; resize: none; font-size: 0.9em; min-height: 20px; max-height: 80px; overflow-y: auto; }
         #chatSendMessageBtnAcad { background: var(--primary-color, #007bff); color: var(--button-text-color, white); border: none; border-radius: 50%; width: 38px; height: 38px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
         #chatSendMessageBtnAcad:hover { background: var(--primary-color-dark, #0056b3); }
-        /* --- FIM CSS NOVO CHAT ACADÊMICO --- */
     </style>
 </head>
-<body class="theme-<?php echo htmlspecialchars($tema_global_usuario); ?>"> 
+<body class="theme-<?php echo htmlspecialchars($tema_global_usuario); ?>">
     <header>
         <button id="menu-toggle" class="menu-btn"><i class="fas fa-bars"></i></button>
-        <h1>ACADMIX - Enviar Comunicado (Coord. <?php echo htmlspecialchars($nome_coordenador); ?>)</h1>
+        <h1>ACADMIX - Visualizar Alunos (Coordenação)</h1>
         <form action="logout.php" method="post" style="display: inline;">
             <button type="submit" id="logoutBtnHeader" class="button button-logout"><i class="fas fa-sign-out-alt"></i> Sair</button>
         </form>
@@ -120,75 +191,61 @@ if ($stmt_com_prepare) {
         </nav>
 
         <main class="main-content">
-            <h2 class="page-title">Novo Comunicado da Coordenação</h2>
+            <h2 class="page-title">Alunos por Turma</h2>
 
-            <?php if(isset($_SESSION['comunicado_coord_status_message'])): ?>
-                <div class="status-message <?php echo htmlspecialchars($_SESSION['comunicado_coord_status_type']); ?>">
-                    <?php echo htmlspecialchars($_SESSION['comunicado_coord_status_message']); ?>
+            <?php if(isset($_SESSION['manage_aluno_status_message'])): ?>
+                <div class="status-message <?php echo htmlspecialchars($_SESSION['manage_aluno_status_type']); ?>">
+                    <?php echo htmlspecialchars($_SESSION['manage_aluno_status_message']); ?>
                 </div>
-                <?php unset($_SESSION['comunicado_coord_status_message']); unset($_SESSION['comunicado_coord_status_type']); ?>
+                <?php unset($_SESSION['manage_aluno_status_message']); unset($_SESSION['manage_aluno_status_type']); ?>
             <?php endif; ?>
+            
+            <a href="coordenacao_add_aluno.php" class="button button-primary" style="margin-bottom: 1.5rem; display: inline-block;">
+                <i class="fas fa-user-plus"></i> Adicionar Novo Aluno ao Sistema
+            </a>
 
-            <section class="form-section dashboard-section card">
-                <form action="salvar_comunicado_coordenacao.php" method="POST">
-                    <label for="titulo">Título do Comunicado:</label>
-                    <input type="text" id="titulo" name="titulo" required class="input-field">
-
-                    <label for="conteudo">Conteúdo:</label>
-                    <textarea id="conteudo" name="conteudo" required class="input-field"></textarea>
-
-                    <label for="publico_alvo_select">Enviar Para:</label>
-                    <select id="publico_alvo_select" name="publico_alvo_select" required class="input-field" onchange="toggleTurmaSelect()">
-                        <option value="">Selecione o Público</option>
-                        <option value="TODOS_ALUNOS">Alunos (Geral - Todas as Turmas)</option>
-                        <option value="TURMA_ESPECIFICA_ALUNOS">Alunos (Turma Específica)</option>
-                        <option value="TODOS_PROFESSORES">Professores (Todos)</option>
-                    </select>
-
-                    <div id="turma_select_div">
-                        <label for="turma_id">Selecione a Turma (para alunos):</label>
-                        <select id="turma_id" name="turma_id" class="input-field">
-                            <option value="">Selecione a Turma</option>
-                            <?php 
-                            if($turmas_result) { // Verifica se a query foi bem sucedida
-                                mysqli_data_seek($turmas_result, 0);
-                                while($turma = mysqli_fetch_assoc($turmas_result)): ?>
-                                    <option value="<?php echo $turma['id']; ?>"><?php echo htmlspecialchars($turma['nome_turma']); ?></option>
-                                <?php endwhile; 
-                            }?>
-                        </select>
-                    </div>
-
-                    <button type="submit" class="button button-primary"><i class="fas fa-paper-plane"></i> Publicar Comunicado</button>
-                </form>
-            </section>
-             <section class="list-section dashboard-section card">
-                <h3><i class="fas fa-history"></i> Últimos Comunicados Enviados</h3>
-                <?php if($comunicados_enviados_result_data && mysqli_num_rows($comunicados_enviados_result_data) > 0): ?>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Título</th>
-                            <th>Público</th>
-                            <th>Turma Específica</th>
-                            <th>Data Publicação</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php while($com = mysqli_fetch_assoc($comunicados_enviados_result_data)): ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($com['titulo']); ?></td>
-                            <td><?php echo htmlspecialchars(str_replace('_', ' ', $com['publico_alvo'])); ?></td>
-                            <td><?php echo htmlspecialchars($com['nome_turma'] ?? 'N/A (Geral)'); ?></td>
-                            <td><?php echo date("d/m/Y H:i", strtotime($com['data_publicacao'])); ?></td>
-                        </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
-                <?php else: ?>
-                <p class="no-data-message info-message">Nenhum comunicado enviado por você ainda.</p>
-                <?php endif; ?>
-            </section>
+            <?php if (!empty($todas_as_turmas_com_alunos)): ?>
+                <?php foreach ($todas_as_turmas_com_alunos as $turma_info): ?>
+                    <section class="dashboard-section card turma-accordion">
+                        <div class="turma-accordion-header card-header" data-turma-id="<?php echo $turma_info['id']; ?>">
+                            <h3><i class="fas fa-users"></i> Turma: <?php echo htmlspecialchars($turma_info['nome_turma']); ?> (<?php echo htmlspecialchars($turma_info['ano_letivo'] . ' - ' . $turma_info['periodo']); ?>)</h3>
+                            <span class="toggle-icon"><i class="fas fa-chevron-right"></i></span>
+                        </div>
+                        <div class="turma-alunos-list" id="alunos-turma-<?php echo $turma_info['id']; ?>">
+                            <?php if (!empty($turma_info['alunos'])): ?>
+                                <div class="aluno-grid">
+                                    <?php foreach ($turma_info['alunos'] as $aluno): ?>
+                                        <div class="aluno-card card-item">
+                                            <img src="<?php echo htmlspecialchars(!empty($aluno['foto_url']) ? $aluno['foto_url'] : 'img/alunos/default_avatar.png'); ?>" 
+                                                 alt="Foto de <?php echo htmlspecialchars($aluno['nome']); ?>" 
+                                                 class="aluno-photo"
+                                                 onerror="this.onerror=null; this.src='img/alunos/default_avatar.png';">
+                                            <div class="aluno-info">
+                                                <h4><?php echo htmlspecialchars($aluno['nome']); ?></h4>
+                                                <p><i class="fas fa-envelope"></i> <?php echo htmlspecialchars($aluno['email'] ?? 'Email não informado'); ?></p>
+                                                <div class="aluno-actions">
+                                                    <a href="perfil_aluno_coordenacao.php?id=<?php echo $aluno['id']; ?>" class="button button-secondary button-small" title="Ver Perfil Detalhado">
+                                                        <i class="fas fa-eye"></i> Perfil
+                                                    </a>
+                                                    <form action="coordenacao_ver_alunos.php" method="POST" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja excluir o aluno(a) \'<?php echo htmlspecialchars(addslashes($aluno['nome'])); ?>\' do sistema? Esta ação não pode ser desfeita.');">
+                                                        <input type="hidden" name="action" value="delete_aluno">
+                                                        <input type="hidden" name="aluno_id_delete" value="<?php echo $aluno['id']; ?>">
+                                                        <input type="hidden" name="turma_id_contexto" value="<?php echo $turma_info['id']; ?>"> <button type="submit" class="button button-danger button-small" title="Excluir Aluno do Sistema"><i class="fas fa-trash-alt"></i> Excluir</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php else: ?>
+                                <p class="no-data-message info-message">Nenhum aluno matriculado nesta turma.</p>
+                            <?php endif; ?>
+                        </div>
+                    </section>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <p class="no-data-message info-message">Nenhuma turma cadastrada no sistema.</p>
+            <?php endif; ?>
         </main>
     </div>
 
@@ -232,22 +289,32 @@ if ($stmt_com_prepare) {
             });
         }
 
-        // Script específico da página para mostrar/ocultar select de turma
-        function toggleTurmaSelect() {
-            const publicoSelect = document.getElementById('publico_alvo_select');
-            const turmaDiv = document.getElementById('turma_select_div');
-            const turmaSelect = document.getElementById('turma_id');
-            if (publicoSelect.value === 'TURMA_ESPECIFICA_ALUNOS') { // Ajustado valor
-                turmaDiv.style.display = 'block';
-                turmaSelect.required = true;
-            } else {
-                turmaDiv.style.display = 'none';
-                turmaSelect.required = false;
-                turmaSelect.value = ''; 
+        // Script para expandir/colapsar turmas
+        document.querySelectorAll('.turma-accordion-header').forEach(header => {
+            header.addEventListener('click', function() {
+                this.classList.toggle('active');
+                const content = this.nextElementSibling;
+                if (content.style.display === "block") {
+                    content.style.display = "none";
+                } else {
+                    content.style.display = "block";
+                }
+            });
+        });
+
+        // Para abrir a turma focada via GET parâmetro (após uma ação, por exemplo)
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const turmaIdFocus = urlParams.get('turma_id_focus');
+            if (turmaIdFocus) {
+                const headerToFocus = document.querySelector(`.turma-accordion-header[data-turma-id="${turmaIdFocus}"]`);
+                if (headerToFocus) {
+                    headerToFocus.click(); // Simula o clique para expandir
+                    headerToFocus.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
             }
-        }
-        // Chamar ao carregar a página para estado inicial correto, se o select já tiver um valor
-        document.addEventListener('DOMContentLoaded', toggleTurmaSelect);
+        });
+
     </script>
 
     <script>
@@ -270,9 +337,10 @@ if ($stmt_com_prepare) {
 
         const defaultUserPhoto = 'img/alunos/default_avatar.png';
         const defaultProfessorPhoto = 'img/professores/default_avatar_prof.png'; 
-        const defaultCoordenadorPhoto = 'img/coordenadores/default_avatar.png'; // Crie ou ajuste o caminho
+        const defaultCoordenadorPhoto = 'img/coordenadores/default_avatar.png'; 
 
         const chatWidget = document.getElementById('academicChatWidget');
+        // Demais seletores de elementos do chat
         const chatHeader = document.getElementById('chatWidgetHeaderAcad');
         const chatToggleBtn = document.getElementById('chatToggleBtnAcad');
         const chatBody = document.getElementById('chatWidgetBodyAcad');
@@ -542,7 +610,4 @@ if ($stmt_com_prepare) {
 
 </body>
 </html>
-<?php 
-if(isset($stmt_com_prepare)) mysqli_stmt_close($stmt_com_prepare); // Nome da variável de statement corrigido
-if(isset($conn) && $conn) mysqli_close($conn); 
-?>
+<?php if(isset($conn) && $conn) mysqli_close($conn); ?>

@@ -4,70 +4,140 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'coordenacao') {
     header("Location: index.html");
     exit();
 }
-include 'db.php';
-// Ajustando variáveis para o contexto da coordenação
+include 'db.php'; 
+
 $nome_coordenador = $_SESSION['usuario_nome'];
-$coordenador_id = $_SESSION['usuario_id']; // Essencial para o chat
+$coordenador_id = $_SESSION['usuario_id']; 
 
-$currentPageIdentifier = 'comunicados_coord'; // Para a sidebar
-
-// PEGAR TEMA DA SESSÃO
+$currentPageIdentifier = 'gerenciar_disciplinas_coord'; // Ajuste para o seu sidebar
 $tema_global_usuario = isset($_SESSION['tema_usuario']) ? $_SESSION['tema_usuario'] : 'padrao';
 
-// Buscar turmas para o select
-$turmas_result = mysqli_query($conn, "SELECT id, nome_turma FROM turmas ORDER BY nome_turma");
+// --- LÓGICA DE PROCESSAMENTO DE FORMULÁRIOS (AÇÕES POST) ---
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    mysqli_autocommit($conn, FALSE); 
 
-// Buscar comunicados já enviados por esta coordenação
-$comunicados_enviados_sql = "
-    SELECT c.id, c.titulo, c.data_publicacao, c.publico_alvo, t.nome_turma
-    FROM comunicados c
-    LEFT JOIN turmas t ON c.turma_id = t.id
-    WHERE c.coordenador_id = ? -- Filtrar por coordenador_id
-    ORDER BY c.data_publicacao DESC LIMIT 10";
-$stmt_com_prepare = mysqli_prepare($conn, $comunicados_enviados_sql); // Nome da variável ajustado
-$comunicados_enviados_result_data = null; // Nome da variável ajustado
-if ($stmt_com_prepare) {
-    mysqli_stmt_bind_param($stmt_com_prepare, "i", $coordenador_id); // Usar $coordenador_id
-    mysqli_stmt_execute($stmt_com_prepare);
-    $comunicados_enviados_result_data = mysqli_stmt_get_result($stmt_com_prepare);
+    try {
+        if ($_POST['action'] === 'add_disciplina' && isset($_POST['nome_nova_disciplina'])) {
+            $nome_nova_disciplina = trim($_POST['nome_nova_disciplina']);
+            $ementa_nova_disciplina = isset($_POST['ementa_nova_disciplina']) ? trim($_POST['ementa_nova_disciplina']) : NULL;
+            $carga_horaria_nova_disciplina = isset($_POST['carga_horaria_nova_disciplina']) && is_numeric($_POST['carga_horaria_nova_disciplina']) ? intval($_POST['carga_horaria_nova_disciplina']) : NULL;
+
+
+            if (!empty($nome_nova_disciplina)) {
+                $sql_check = "SELECT id FROM disciplinas WHERE nome_disciplina = ?";
+                $stmt_check = mysqli_prepare($conn, $sql_check);
+                mysqli_stmt_bind_param($stmt_check, "s", $nome_nova_disciplina);
+                mysqli_stmt_execute($stmt_check);
+                mysqli_stmt_store_result($stmt_check);
+
+                if (mysqli_stmt_num_rows($stmt_check) > 0) {
+                    throw new Exception("Uma disciplina com o nome '".htmlspecialchars($nome_nova_disciplina)."' já existe.");
+                }
+                mysqli_stmt_close($stmt_check);
+
+                $sql_insert_disciplina = "INSERT INTO disciplinas (nome_disciplina, ementa, carga_horaria) VALUES (?, ?, ?)";
+                $stmt_insert = mysqli_prepare($conn, $sql_insert_disciplina);
+                mysqli_stmt_bind_param($stmt_insert, "ssi", $nome_nova_disciplina, $ementa_nova_disciplina, $carga_horaria_nova_disciplina);
+                if (mysqli_stmt_execute($stmt_insert)) {
+                    $_SESSION['manage_disciplina_status_message'] = "Disciplina '" . htmlspecialchars($nome_nova_disciplina) . "' adicionada com sucesso!";
+                    $_SESSION['manage_disciplina_status_type'] = "status-success";
+                } else {
+                    throw new Exception("Erro ao adicionar disciplina: " . mysqli_stmt_error($stmt_insert));
+                }
+                mysqli_stmt_close($stmt_insert);
+            } else {
+                throw new Exception("O nome da disciplina é obrigatório.");
+            }
+        } elseif ($_POST['action'] === 'delete_disciplina' && isset($_POST['disciplina_id_delete'])) {
+            $disciplina_id_del = intval($_POST['disciplina_id_delete']);
+
+            if ($disciplina_id_del > 0) {
+                // Verificar se a disciplina está sendo usada em professores_turmas_disciplinas
+                $sql_check_usage = "SELECT COUNT(*) as total FROM professores_turmas_disciplinas WHERE disciplina_id = ?";
+                $stmt_check_usage = mysqli_prepare($conn, $sql_check_usage);
+                mysqli_stmt_bind_param($stmt_check_usage, "i", $disciplina_id_del);
+                mysqli_stmt_execute($stmt_check_usage);
+                $result_usage = mysqli_stmt_get_result($stmt_check_usage);
+                $usage_count = mysqli_fetch_assoc($result_usage)['total'];
+                mysqli_stmt_close($stmt_check_usage);
+
+                if ($usage_count > 0) {
+                    throw new Exception("Não é possível excluir a disciplina, pois ela está atualmente associada a uma ou mais turmas/professores. Remova essas associações primeiro.");
+                }
+
+                $sql_delete_disciplina = "DELETE FROM disciplinas WHERE id = ?";
+                $stmt_delete = mysqli_prepare($conn, $sql_delete_disciplina);
+                mysqli_stmt_bind_param($stmt_delete, "i", $disciplina_id_del);
+                if (mysqli_stmt_execute($stmt_delete)) {
+                    if (mysqli_stmt_affected_rows($stmt_delete) > 0) {
+                        $_SESSION['manage_disciplina_status_message'] = "Disciplina excluída com sucesso!";
+                        $_SESSION['manage_disciplina_status_type'] = "status-success";
+                    } else {
+                        throw new Exception("Nenhuma disciplina encontrada com o ID fornecido para exclusão.");
+                    }
+                } else {
+                    throw new Exception("Erro ao excluir disciplina: " . mysqli_stmt_error($stmt_delete));
+                }
+                mysqli_stmt_close($stmt_delete);
+            } else {
+                 throw new Exception("ID da disciplina inválido para exclusão.");
+            }
+        }
+        mysqli_commit($conn);
+    } catch (Exception $e) {
+        mysqli_rollback($conn); 
+        $_SESSION['manage_disciplina_status_message'] = "Erro: " . $e->getMessage();
+        $_SESSION['manage_disciplina_status_type'] = "status-error";
+        error_log("Erro em coordenacao_gerenciar_disciplinas.php (action): " . $e->getMessage());
+    }
+    mysqli_autocommit($conn, TRUE); 
+    header("Location: coordenacao_gerenciar_disciplinas.php"); 
+    exit();
+}
+// --- FIM LÓGICA DE PROCESSAMENTO DE FORMULÁRIOS ---
+
+// Buscar todas as disciplinas
+$todas_as_disciplinas = [];
+$sql_todas_disciplinas = "SELECT id, nome_disciplina, ementa, carga_horaria FROM disciplinas ORDER BY nome_disciplina ASC";
+$result_todas_disciplinas = mysqli_query($conn, $sql_todas_disciplinas);
+if ($result_todas_disciplinas) {
+    while ($row = mysqli_fetch_assoc($result_todas_disciplinas)) {
+        $todas_as_disciplinas[] = $row;
+    }
 } else {
-    error_log("Erro ao buscar comunicados enviados pela coordenação: " . mysqli_error($conn));
+    error_log("Erro ao buscar todas as disciplinas (coordenacao_gerenciar_disciplinas.php): " . mysqli_error($conn));
 }
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Enviar Comunicado - Coordenação ACADMIX</title>
-    <link rel="stylesheet" href="css/coordenacao.css"> <link rel="stylesheet" href="css/temas_globais.css"> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <title>Gerenciar Disciplinas - Coordenação ACADMIX</title>
+    <link rel="stylesheet" href="css/coordenacao.css"> 
+    <link rel="stylesheet" href="css/temas_globais.css"> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <?php if ($tema_global_usuario === '8bit'): ?>
         <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <?php endif; ?>
     <style>
-        /* Estilos da página coordenacao_lancar_comunicado.php */
-        .form-section, .list-section { 
-            margin-bottom: 2rem; padding: 1.5rem; border-radius: 8px; /* Ajustado border-radius */
-        }
-        .form-section label { display: block; margin-top: 1rem; margin-bottom: 0.5rem; font-weight: bold; }
-        .form-section input[type="text"],
-        .form-section textarea,
-        .form-section select {
-            width: 100%; padding: 0.75rem; border-radius: 4px; box-sizing: border-box;
-        }
-        .form-section textarea { min-height: 150px; }
-        .form-section button[type="submit"] {
-            padding: 0.75rem 1.5rem; border: none; border-radius: 4px; cursor: pointer; 
-            font-size: 1rem; margin-top: 1.5rem;
-        }
-        .status-message { padding: 1rem; margin-bottom: 1rem; border-radius: 4px; text-align: center; }
-        /* .status-success e .status-error devem vir de temas_globais.css ou um CSS base */
-        .list-section table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        .list-section th, .list-section td { 
-            padding: 0.75rem; text-align: left; 
-        }
-        #turma_select_div { display: none; margin-top: 1rem; } 
+        .page-title { text-align: center; font-size: 1.8rem; margin-bottom: 1.5rem; }
+        .action-section { margin-bottom: 2rem; }
+        .form-container { max-width: 700px; margin: 0 auto 2rem auto; }
+        .form-container label { display: block; margin-top: 1rem; margin-bottom: 0.3rem; font-weight: bold;}
+        .form-container input[type="text"], .form-container input[type="number"], .form-container textarea { width: 100%; padding: 0.6rem; margin-bottom: 0.8rem; box-sizing: border-box; border-radius: 4px;}
+        .form-container textarea { min-height: 100px; }
+        .form-container button { display: block; width: auto; margin-top: 1rem; padding: 0.7rem 1.5rem; }
+        
+        .disciplina-list table { width: 100%; border-collapse: collapse; }
+        .disciplina-list th, .disciplina-list td { padding: 0.75rem; text-align: left; vertical-align: top; }
+        .disciplina-list .actions-cell form { display: inline; }
+        .disciplina-list .actions-cell button { margin-left: 5px; }
+        .ementa-cell { max-width: 300px; white-space: pre-wrap; word-break: break-word; font-size: 0.85em; }
 
-        /* --- INÍCIO CSS NOVO CHAT ACADÊMICO --- */
+        .no-data-message { padding: 1rem; text-align: center; border-radius: 4px; }
+        .status-message { padding: 1rem; margin-bottom: 1rem; border-radius: 4px; text-align: center; }
+
+        /* --- CSS CHAT ACADÊMICO --- */
         .chat-widget-acad { position: fixed; bottom: 0; right: 20px; width: 320px; border-top-left-radius: 10px; border-top-right-radius: 10px; box-shadow: 0 -2px 10px rgba(0,0,0,0.15); z-index: 1000; overflow: hidden; transition: height 0.3s ease-in-out; }
         .chat-widget-acad.chat-collapsed { height: 45px; }
         .chat-widget-acad.chat-expanded { height: 450px; }
@@ -102,13 +172,12 @@ if ($stmt_com_prepare) {
         #chatMessageInputAcad { flex-grow: 1; padding: 8px 12px; border: 1px solid var(--border-color, #ddd); border-radius: 20px; resize: none; font-size: 0.9em; min-height: 20px; max-height: 80px; overflow-y: auto; }
         #chatSendMessageBtnAcad { background: var(--primary-color, #007bff); color: var(--button-text-color, white); border: none; border-radius: 50%; width: 38px; height: 38px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
         #chatSendMessageBtnAcad:hover { background: var(--primary-color-dark, #0056b3); }
-        /* --- FIM CSS NOVO CHAT ACADÊMICO --- */
     </style>
 </head>
-<body class="theme-<?php echo htmlspecialchars($tema_global_usuario); ?>"> 
+<body class="theme-<?php echo htmlspecialchars($tema_global_usuario); ?>">
     <header>
         <button id="menu-toggle" class="menu-btn"><i class="fas fa-bars"></i></button>
-        <h1>ACADMIX - Enviar Comunicado (Coord. <?php echo htmlspecialchars($nome_coordenador); ?>)</h1>
+        <h1>ACADMIX - Gerenciar Disciplinas (Coord. <?php echo htmlspecialchars($nome_coordenador); ?>)</h1>
         <form action="logout.php" method="post" style="display: inline;">
             <button type="submit" id="logoutBtnHeader" class="button button-logout"><i class="fas fa-sign-out-alt"></i> Sair</button>
         </form>
@@ -120,73 +189,65 @@ if ($stmt_com_prepare) {
         </nav>
 
         <main class="main-content">
-            <h2 class="page-title">Novo Comunicado da Coordenação</h2>
+            <h2 class="page-title">Gerenciamento de Disciplinas</h2>
 
-            <?php if(isset($_SESSION['comunicado_coord_status_message'])): ?>
-                <div class="status-message <?php echo htmlspecialchars($_SESSION['comunicado_coord_status_type']); ?>">
-                    <?php echo htmlspecialchars($_SESSION['comunicado_coord_status_message']); ?>
+            <?php if(isset($_SESSION['manage_disciplina_status_message'])): ?>
+                <div class="status-message <?php echo htmlspecialchars($_SESSION['manage_disciplina_status_type']); ?>">
+                    <?php echo htmlspecialchars($_SESSION['manage_disciplina_status_message']); ?>
                 </div>
-                <?php unset($_SESSION['comunicado_coord_status_message']); unset($_SESSION['comunicado_coord_status_type']); ?>
+                <?php unset($_SESSION['manage_disciplina_status_message']); unset($_SESSION['manage_disciplina_status_type']); ?>
             <?php endif; ?>
 
-            <section class="form-section dashboard-section card">
-                <form action="salvar_comunicado_coordenacao.php" method="POST">
-                    <label for="titulo">Título do Comunicado:</label>
-                    <input type="text" id="titulo" name="titulo" required class="input-field">
+            <section class="dashboard-section card action-section">
+                <h3><i class="fas fa-plus-square"></i> Adicionar Nova Disciplina</h3>
+                <form action="coordenacao_gerenciar_disciplinas.php" method="POST" class="form-container">
+                    <input type="hidden" name="action" value="add_disciplina">
+                    <label for="nome_nova_disciplina">Nome da Disciplina:</label>
+                    <input type="text" id="nome_nova_disciplina" name="nome_nova_disciplina" class="input-field" required placeholder="Ex: Matemática Aplicada, História do Brasil">
+                    
+                    <label for="ementa_nova_disciplina">Ementa (Opcional):</label>
+                    <textarea id="ementa_nova_disciplina" name="ementa_nova_disciplina" class="input-field" placeholder="Descreva os tópicos principais da disciplina..."></textarea>
 
-                    <label for="conteudo">Conteúdo:</label>
-                    <textarea id="conteudo" name="conteudo" required class="input-field"></textarea>
-
-                    <label for="publico_alvo_select">Enviar Para:</label>
-                    <select id="publico_alvo_select" name="publico_alvo_select" required class="input-field" onchange="toggleTurmaSelect()">
-                        <option value="">Selecione o Público</option>
-                        <option value="TODOS_ALUNOS">Alunos (Geral - Todas as Turmas)</option>
-                        <option value="TURMA_ESPECIFICA_ALUNOS">Alunos (Turma Específica)</option>
-                        <option value="TODOS_PROFESSORES">Professores (Todos)</option>
-                    </select>
-
-                    <div id="turma_select_div">
-                        <label for="turma_id">Selecione a Turma (para alunos):</label>
-                        <select id="turma_id" name="turma_id" class="input-field">
-                            <option value="">Selecione a Turma</option>
-                            <?php 
-                            if($turmas_result) { // Verifica se a query foi bem sucedida
-                                mysqli_data_seek($turmas_result, 0);
-                                while($turma = mysqli_fetch_assoc($turmas_result)): ?>
-                                    <option value="<?php echo $turma['id']; ?>"><?php echo htmlspecialchars($turma['nome_turma']); ?></option>
-                                <?php endwhile; 
-                            }?>
-                        </select>
-                    </div>
-
-                    <button type="submit" class="button button-primary"><i class="fas fa-paper-plane"></i> Publicar Comunicado</button>
+                    <label for="carga_horaria_nova_disciplina">Carga Horária Semanal (Opcional):</label>
+                    <input type="number" id="carga_horaria_nova_disciplina" name="carga_horaria_nova_disciplina" class="input-field" placeholder="Ex: 4 (para 4 aulas/semana)" min="1">
+                    
+                    <button type="submit" class="button button-primary"><i class="fas fa-plus-circle"></i> Adicionar Disciplina</button>
                 </form>
             </section>
-             <section class="list-section dashboard-section card">
-                <h3><i class="fas fa-history"></i> Últimos Comunicados Enviados</h3>
-                <?php if($comunicados_enviados_result_data && mysqli_num_rows($comunicados_enviados_result_data) > 0): ?>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Título</th>
-                            <th>Público</th>
-                            <th>Turma Específica</th>
-                            <th>Data Publicação</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php while($com = mysqli_fetch_assoc($comunicados_enviados_result_data)): ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($com['titulo']); ?></td>
-                            <td><?php echo htmlspecialchars(str_replace('_', ' ', $com['publico_alvo'])); ?></td>
-                            <td><?php echo htmlspecialchars($com['nome_turma'] ?? 'N/A (Geral)'); ?></td>
-                            <td><?php echo date("d/m/Y H:i", strtotime($com['data_publicacao'])); ?></td>
-                        </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
+
+            <section class="dashboard-section card disciplina-list">
+                <h3><i class="fas fa-book-open"></i> Disciplinas Cadastradas</h3>
+                <?php if (!empty($todas_as_disciplinas)): ?>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nome da Disciplina</th>
+                                <th>Ementa (Início)</th>
+                                <th>C. Horária</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($todas_as_disciplinas as $disciplina_item): ?>
+                                <tr>
+                                    <td><?php echo $disciplina_item['id']; ?></td>
+                                    <td><?php echo htmlspecialchars($disciplina_item['nome_disciplina']); ?></td>
+                                    <td class="ementa-cell"><?php echo htmlspecialchars(mb_substr($disciplina_item['ementa'] ?? '', 0, 70)) . (mb_strlen($disciplina_item['ementa'] ?? '') > 70 ? '...' : ''); ?></td>
+                                    <td><?php echo htmlspecialchars($disciplina_item['carga_horaria'] ?? '-'); ?></td>
+                                    <td class="actions-cell">
+                                        <form action="coordenacao_gerenciar_disciplinas.php" method="POST" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja excluir a disciplina \'<?php echo htmlspecialchars(addslashes($disciplina_item['nome_disciplina'])); ?>\'? Verifique se ela não está em uso por turmas/professores.');">
+                                            <input type="hidden" name="action" value="delete_disciplina">
+                                            <input type="hidden" name="disciplina_id_delete" value="<?php echo $disciplina_item['id']; ?>">
+                                            <button type="submit" class="button button-danger button-xsmall" title="Excluir Disciplina"><i class="fas fa-trash-alt"></i></button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
                 <?php else: ?>
-                <p class="no-data-message info-message">Nenhum comunicado enviado por você ainda.</p>
+                    <p class="no-data-message info-message">Nenhuma disciplina cadastrada no momento.</p>
                 <?php endif; ?>
             </section>
         </main>
@@ -231,23 +292,6 @@ if ($stmt_com_prepare) {
                 pageContainerGlobal.classList.toggle('full-width'); 
             });
         }
-
-        // Script específico da página para mostrar/ocultar select de turma
-        function toggleTurmaSelect() {
-            const publicoSelect = document.getElementById('publico_alvo_select');
-            const turmaDiv = document.getElementById('turma_select_div');
-            const turmaSelect = document.getElementById('turma_id');
-            if (publicoSelect.value === 'TURMA_ESPECIFICA_ALUNOS') { // Ajustado valor
-                turmaDiv.style.display = 'block';
-                turmaSelect.required = true;
-            } else {
-                turmaDiv.style.display = 'none';
-                turmaSelect.required = false;
-                turmaSelect.value = ''; 
-            }
-        }
-        // Chamar ao carregar a página para estado inicial correto, se o select já tiver um valor
-        document.addEventListener('DOMContentLoaded', toggleTurmaSelect);
     </script>
 
     <script>
@@ -270,7 +314,7 @@ if ($stmt_com_prepare) {
 
         const defaultUserPhoto = 'img/alunos/default_avatar.png';
         const defaultProfessorPhoto = 'img/professores/default_avatar_prof.png'; 
-        const defaultCoordenadorPhoto = 'img/coordenadores/default_avatar.png'; // Crie ou ajuste o caminho
+        const defaultCoordenadorPhoto = 'img/coordenadores/default_avatar.png'; 
 
         const chatWidget = document.getElementById('academicChatWidget');
         const chatHeader = document.getElementById('chatWidgetHeaderAcad');
@@ -542,7 +586,4 @@ if ($stmt_com_prepare) {
 
 </body>
 </html>
-<?php 
-if(isset($stmt_com_prepare)) mysqli_stmt_close($stmt_com_prepare); // Nome da variável de statement corrigido
-if(isset($conn) && $conn) mysqli_close($conn); 
-?>
+<?php if(isset($conn) && $conn) mysqli_close($conn); ?>

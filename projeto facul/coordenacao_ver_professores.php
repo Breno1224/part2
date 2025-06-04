@@ -4,70 +4,129 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'coordenacao') {
     header("Location: index.html");
     exit();
 }
-include 'db.php';
-// Ajustando variáveis para o contexto da coordenação
+include 'db.php'; // Conexão com o banco
+
 $nome_coordenador = $_SESSION['usuario_nome'];
-$coordenador_id = $_SESSION['usuario_id']; // Essencial para o chat
+$coordenador_id = $_SESSION['usuario_id']; // Para o chat e outras lógicas de coordenação
 
-$currentPageIdentifier = 'comunicados_coord'; // Para a sidebar
-
-// PEGAR TEMA DA SESSÃO
+$currentPageIdentifier = 'ver_professores_coord'; // Ajuste conforme seu sidebar
 $tema_global_usuario = isset($_SESSION['tema_usuario']) ? $_SESSION['tema_usuario'] : 'padrao';
 
-// Buscar turmas para o select
-$turmas_result = mysqli_query($conn, "SELECT id, nome_turma FROM turmas ORDER BY nome_turma");
+// --- LÓGICA DE PROCESSAMENTO DE AÇÕES (EX: EXCLUIR PROFESSOR) ---
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    mysqli_autocommit($conn, FALSE); // Iniciar transação
 
-// Buscar comunicados já enviados por esta coordenação
-$comunicados_enviados_sql = "
-    SELECT c.id, c.titulo, c.data_publicacao, c.publico_alvo, t.nome_turma
-    FROM comunicados c
-    LEFT JOIN turmas t ON c.turma_id = t.id
-    WHERE c.coordenador_id = ? -- Filtrar por coordenador_id
-    ORDER BY c.data_publicacao DESC LIMIT 10";
-$stmt_com_prepare = mysqli_prepare($conn, $comunicados_enviados_sql); // Nome da variável ajustado
-$comunicados_enviados_result_data = null; // Nome da variável ajustado
-if ($stmt_com_prepare) {
-    mysqli_stmt_bind_param($stmt_com_prepare, "i", $coordenador_id); // Usar $coordenador_id
-    mysqli_stmt_execute($stmt_com_prepare);
-    $comunicados_enviados_result_data = mysqli_stmt_get_result($stmt_com_prepare);
-} else {
-    error_log("Erro ao buscar comunicados enviados pela coordenação: " . mysqli_error($conn));
+    try {
+        if ($_POST['action'] === 'delete_professor' && isset($_POST['professor_id_delete'])) {
+            $professor_id_to_delete = intval($_POST['professor_id_delete']);
+
+            if ($professor_id_to_delete > 0) {
+                // 1. Opcional: Desvincular ou tratar outros registros dependentes (materiais, comunicados, etc.)
+                // Exemplo: UPDATE materiais_didaticos SET professor_id = NULL WHERE professor_id = ?
+                // Exemplo: UPDATE comunicados SET professor_id = NULL WHERE professor_id = ? (se não for da coordenação)
+                
+                // 2. Excluir associações em professores_turmas_disciplinas
+                $sql_delete_assoc = "DELETE FROM professores_turmas_disciplinas WHERE professor_id = ?";
+                $stmt_delete_assoc = mysqli_prepare($conn, $sql_delete_assoc);
+                mysqli_stmt_bind_param($stmt_delete_assoc, "i", $professor_id_to_delete);
+                mysqli_stmt_execute($stmt_delete_assoc); 
+                // Não verificamos affected_rows aqui, pois pode não haver associações, mas a operação deve ser tentada.
+                mysqli_stmt_close($stmt_delete_assoc);
+
+                // 3. Excluir o professor da tabela professores
+                $sql_delete_prof = "DELETE FROM professores WHERE id = ?";
+                $stmt_delete_prof = mysqli_prepare($conn, $sql_delete_prof);
+                mysqli_stmt_bind_param($stmt_delete_prof, "i", $professor_id_to_delete);
+                if (mysqli_stmt_execute($stmt_delete_prof)) {
+                    if (mysqli_stmt_affected_rows($stmt_delete_prof) > 0) {
+                        $_SESSION['manage_prof_status_message'] = "Professor excluído com sucesso!";
+                        $_SESSION['manage_prof_status_type'] = "status-success";
+                    } else {
+                        throw new Exception("Professor não encontrado ou já excluído.");
+                    }
+                } else {
+                    throw new Exception("Erro ao excluir professor: " . mysqli_stmt_error($stmt_delete_prof));
+                }
+                mysqli_stmt_close($stmt_delete_prof);
+                mysqli_commit($conn);
+            } else {
+                throw new Exception("ID do professor inválido para exclusão.");
+            }
+        }
+        // Adicionar outras actions aqui (ex: editar professor)
+
+    } catch (Exception $e) {
+        mysqli_rollback($conn);
+        $_SESSION['manage_prof_status_message'] = "Erro: " . $e->getMessage();
+        $_SESSION['manage_prof_status_type'] = "status-error";
+        error_log("Erro em coordenacao_ver_professores.php (action): " . $e->getMessage());
+    }
+    mysqli_autocommit($conn, TRUE); // Restaurar autocommit
+    header("Location: coordenacao_ver_professores.php"); // Redirecionar para atualizar a lista
+    exit();
 }
+// --- FIM LÓGICA DE PROCESSAMENTO DE AÇÕES ---
+
+
+// Buscar todos os professores e suas disciplinas
+$professores = [];
+$sql_todos_professores = "SELECT id, nome, email, foto_url FROM professores ORDER BY nome ASC";
+$result_todos_professores = mysqli_query($conn, $sql_todos_professores);
+
+if ($result_todos_professores) {
+    while ($prof = mysqli_fetch_assoc($result_todos_professores)) {
+        $prof['disciplinas_lecionadas'] = [];
+        $sql_disciplinas_prof = "SELECT DISTINCT d.nome_disciplina 
+                                 FROM disciplinas d
+                                 JOIN professores_turmas_disciplinas ptd ON d.id = ptd.disciplina_id
+                                 WHERE ptd.professor_id = ?
+                                 ORDER BY d.nome_disciplina";
+        $stmt_disc = mysqli_prepare($conn, $sql_disciplinas_prof);
+        if ($stmt_disc) {
+            mysqli_stmt_bind_param($stmt_disc, "i", $prof['id']);
+            mysqli_stmt_execute($stmt_disc);
+            $result_disc = mysqli_stmt_get_result($stmt_disc);
+            while ($disc_row = mysqli_fetch_assoc($result_disc)) {
+                $prof['disciplinas_lecionadas'][] = $disc_row['nome_disciplina'];
+            }
+            mysqli_stmt_close($stmt_disc);
+        }
+        $professores[] = $prof;
+    }
+} else {
+    error_log("Erro ao buscar lista de professores (coordenacao_ver_professores.php): " . mysqli_error($conn));
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Enviar Comunicado - Coordenação ACADMIX</title>
-    <link rel="stylesheet" href="css/coordenacao.css"> <link rel="stylesheet" href="css/temas_globais.css"> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <title>Visualizar Professores - Coordenação ACADMIX</title>
+    <link rel="stylesheet" href="css/coordenacao.css"> 
+    <link rel="stylesheet" href="css/temas_globais.css"> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <?php if ($tema_global_usuario === '8bit'): ?>
         <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <?php endif; ?>
     <style>
-        /* Estilos da página coordenacao_lancar_comunicado.php */
-        .form-section, .list-section { 
-            margin-bottom: 2rem; padding: 1.5rem; border-radius: 8px; /* Ajustado border-radius */
-        }
-        .form-section label { display: block; margin-top: 1rem; margin-bottom: 0.5rem; font-weight: bold; }
-        .form-section input[type="text"],
-        .form-section textarea,
-        .form-section select {
-            width: 100%; padding: 0.75rem; border-radius: 4px; box-sizing: border-box;
-        }
-        .form-section textarea { min-height: 150px; }
-        .form-section button[type="submit"] {
-            padding: 0.75rem 1.5rem; border: none; border-radius: 4px; cursor: pointer; 
-            font-size: 1rem; margin-top: 1.5rem;
-        }
+        .page-title { text-align: center; font-size: 1.8rem; margin-bottom: 1.5rem; }
+        .professor-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+        .professor-card { padding: 1.5rem; border-radius: 8px; display: flex; flex-direction: column; }
+        .professor-card-header { display: flex; align-items: center; margin-bottom: 1rem; }
+        .professor-photo { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-right: 1rem; border: 2px solid var(--border-color-soft, #ddd); }
+        .professor-info h3 { margin: 0 0 0.3rem 0; font-size: 1.25rem; }
+        .professor-info p { margin: 0 0 0.5rem 0; font-size: 0.9rem; }
+        .professor-disciplinas { margin-bottom: 1rem; }
+        .professor-disciplinas strong { font-size: 0.95rem; }
+        .disciplinas-list { list-style: none; padding-left: 0; font-size: 0.85rem; margin-top: 0.3rem;}
+        .disciplinas-list li { display: inline-block; background-color: var(--tag-background-color, #e9ecef); color: var(--tag-text-color, #495057); padding: 0.2rem 0.5rem; border-radius: 4px; margin-right: 5px; margin-bottom: 5px; }
+        .professor-actions { margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border-color-soft, #eee); display: flex; justify-content: flex-start; gap: 10px; }
+        .professor-actions .button { text-decoration: none; }
+        .no-data-message { padding: 1rem; text-align: center; border-radius: 4px; }
         .status-message { padding: 1rem; margin-bottom: 1rem; border-radius: 4px; text-align: center; }
-        /* .status-success e .status-error devem vir de temas_globais.css ou um CSS base */
-        .list-section table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        .list-section th, .list-section td { 
-            padding: 0.75rem; text-align: left; 
-        }
-        #turma_select_div { display: none; margin-top: 1rem; } 
 
-        /* --- INÍCIO CSS NOVO CHAT ACADÊMICO --- */
+        /* --- CSS NOVO CHAT ACADÊMICO --- */
         .chat-widget-acad { position: fixed; bottom: 0; right: 20px; width: 320px; border-top-left-radius: 10px; border-top-right-radius: 10px; box-shadow: 0 -2px 10px rgba(0,0,0,0.15); z-index: 1000; overflow: hidden; transition: height 0.3s ease-in-out; }
         .chat-widget-acad.chat-collapsed { height: 45px; }
         .chat-widget-acad.chat-expanded { height: 450px; }
@@ -102,13 +161,12 @@ if ($stmt_com_prepare) {
         #chatMessageInputAcad { flex-grow: 1; padding: 8px 12px; border: 1px solid var(--border-color, #ddd); border-radius: 20px; resize: none; font-size: 0.9em; min-height: 20px; max-height: 80px; overflow-y: auto; }
         #chatSendMessageBtnAcad { background: var(--primary-color, #007bff); color: var(--button-text-color, white); border: none; border-radius: 50%; width: 38px; height: 38px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
         #chatSendMessageBtnAcad:hover { background: var(--primary-color-dark, #0056b3); }
-        /* --- FIM CSS NOVO CHAT ACADÊMICO --- */
     </style>
 </head>
-<body class="theme-<?php echo htmlspecialchars($tema_global_usuario); ?>"> 
+<body class="theme-<?php echo htmlspecialchars($tema_global_usuario); ?>">
     <header>
         <button id="menu-toggle" class="menu-btn"><i class="fas fa-bars"></i></button>
-        <h1>ACADMIX - Enviar Comunicado (Coord. <?php echo htmlspecialchars($nome_coordenador); ?>)</h1>
+        <h1>ACADMIX - Visualizar Professores</h1>
         <form action="logout.php" method="post" style="display: inline;">
             <button type="submit" id="logoutBtnHeader" class="button button-logout"><i class="fas fa-sign-out-alt"></i> Sair</button>
         </form>
@@ -120,73 +178,65 @@ if ($stmt_com_prepare) {
         </nav>
 
         <main class="main-content">
-            <h2 class="page-title">Novo Comunicado da Coordenação</h2>
+            <h2 class="page-title">Corpo Docente</h2>
 
-            <?php if(isset($_SESSION['comunicado_coord_status_message'])): ?>
-                <div class="status-message <?php echo htmlspecialchars($_SESSION['comunicado_coord_status_type']); ?>">
-                    <?php echo htmlspecialchars($_SESSION['comunicado_coord_status_message']); ?>
+            <?php if(isset($_SESSION['manage_prof_status_message'])): ?>
+                <div class="status-message <?php echo htmlspecialchars($_SESSION['manage_prof_status_type']); ?>">
+                    <?php echo htmlspecialchars($_SESSION['manage_prof_status_message']); ?>
                 </div>
-                <?php unset($_SESSION['comunicado_coord_status_message']); unset($_SESSION['comunicado_coord_status_type']); ?>
+                <?php unset($_SESSION['manage_prof_status_message']); unset($_SESSION['manage_prof_status_type']); ?>
             <?php endif; ?>
+            
+            <a href="coordenacao_add_professor.php" class="button button-primary" style="margin-bottom: 1.5rem; display: inline-block;">
+                <i class="fas fa-user-plus"></i> Adicionar Novo Professor
+            </a>
 
-            <section class="form-section dashboard-section card">
-                <form action="salvar_comunicado_coordenacao.php" method="POST">
-                    <label for="titulo">Título do Comunicado:</label>
-                    <input type="text" id="titulo" name="titulo" required class="input-field">
-
-                    <label for="conteudo">Conteúdo:</label>
-                    <textarea id="conteudo" name="conteudo" required class="input-field"></textarea>
-
-                    <label for="publico_alvo_select">Enviar Para:</label>
-                    <select id="publico_alvo_select" name="publico_alvo_select" required class="input-field" onchange="toggleTurmaSelect()">
-                        <option value="">Selecione o Público</option>
-                        <option value="TODOS_ALUNOS">Alunos (Geral - Todas as Turmas)</option>
-                        <option value="TURMA_ESPECIFICA_ALUNOS">Alunos (Turma Específica)</option>
-                        <option value="TODOS_PROFESSORES">Professores (Todos)</option>
-                    </select>
-
-                    <div id="turma_select_div">
-                        <label for="turma_id">Selecione a Turma (para alunos):</label>
-                        <select id="turma_id" name="turma_id" class="input-field">
-                            <option value="">Selecione a Turma</option>
-                            <?php 
-                            if($turmas_result) { // Verifica se a query foi bem sucedida
-                                mysqli_data_seek($turmas_result, 0);
-                                while($turma = mysqli_fetch_assoc($turmas_result)): ?>
-                                    <option value="<?php echo $turma['id']; ?>"><?php echo htmlspecialchars($turma['nome_turma']); ?></option>
-                                <?php endwhile; 
-                            }?>
-                        </select>
+            <section class="dashboard-section card">
+                <h3>Professores Cadastrados</h3>
+                <?php if (!empty($professores)): ?>
+                    <div class="professor-grid">
+                        <?php foreach ($professores as $professor_item): ?>
+                            <div class="professor-card card-item">
+                                <div class="professor-card-header">
+                                    <img src="<?php echo htmlspecialchars(!empty($professor_item['foto_url']) ? $professor_item['foto_url'] : 'img/professores/default_avatar.png'); ?>" 
+                                         alt="Foto de <?php echo htmlspecialchars($professor_item['nome']); ?>" 
+                                         class="professor-photo"
+                                         onerror="this.onerror=null; this.src='img/professores/default_avatar.png';">
+                                    <div class="professor-info">
+                                        <h3><?php echo htmlspecialchars($professor_item['nome']); ?></h3>
+                                        <p><i class="fas fa-envelope"></i> <?php echo htmlspecialchars($professor_item['email'] ?? 'Email não informado'); ?></p>
+                                    </div>
+                                </div>
+                                <div class="professor-disciplinas">
+                                    <strong>Disciplinas:</strong>
+                                    <?php if (!empty($professor_item['disciplinas_lecionadas'])): ?>
+                                        <ul class="disciplinas-list">
+                                            <?php foreach ($professor_item['disciplinas_lecionadas'] as $disciplina_nome): ?>
+                                                <li><?php echo htmlspecialchars($disciplina_nome); ?></li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                    <?php else: ?>
+                                        <p>Nenhuma disciplina associada.</p>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="professor-actions">
+                                    <a href="perfil_professor.php?id=<?php echo $professor_item['id']; ?>" class="button button-secondary button-small" title="Ver Perfil Completo">
+                                        <i class="fas fa-eye"></i> Ver Perfil
+                                    </a>
+                                    <a href="coordenacao_edit_professor.php?id=<?php echo $professor_item['id']; ?>" class="button button-warning button-small" title="Editar Professor">
+                                        <i class="fas fa-edit"></i> Editar
+                                    </a>
+                                    <form action="coordenacao_ver_professores.php" method="POST" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja excluir o professor \'<?php echo htmlspecialchars(addslashes($professor_item['nome'])); ?>\'? Esta ação removerá suas associações com turmas e disciplinas.');">
+                                        <input type="hidden" name="action" value="delete_professor">
+                                        <input type="hidden" name="professor_id_delete" value="<?php echo $professor_item['id']; ?>">
+                                        <button type="submit" class="button button-danger button-small" title="Excluir Professor"><i class="fas fa-trash-alt"></i> Excluir</button>
+                                    </form>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
                     </div>
-
-                    <button type="submit" class="button button-primary"><i class="fas fa-paper-plane"></i> Publicar Comunicado</button>
-                </form>
-            </section>
-             <section class="list-section dashboard-section card">
-                <h3><i class="fas fa-history"></i> Últimos Comunicados Enviados</h3>
-                <?php if($comunicados_enviados_result_data && mysqli_num_rows($comunicados_enviados_result_data) > 0): ?>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Título</th>
-                            <th>Público</th>
-                            <th>Turma Específica</th>
-                            <th>Data Publicação</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php while($com = mysqli_fetch_assoc($comunicados_enviados_result_data)): ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($com['titulo']); ?></td>
-                            <td><?php echo htmlspecialchars(str_replace('_', ' ', $com['publico_alvo'])); ?></td>
-                            <td><?php echo htmlspecialchars($com['nome_turma'] ?? 'N/A (Geral)'); ?></td>
-                            <td><?php echo date("d/m/Y H:i", strtotime($com['data_publicacao'])); ?></td>
-                        </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
                 <?php else: ?>
-                <p class="no-data-message info-message">Nenhum comunicado enviado por você ainda.</p>
+                    <p class="no-data-message info-message">Nenhum professor cadastrado no momento.</p>
                 <?php endif; ?>
             </section>
         </main>
@@ -231,23 +281,6 @@ if ($stmt_com_prepare) {
                 pageContainerGlobal.classList.toggle('full-width'); 
             });
         }
-
-        // Script específico da página para mostrar/ocultar select de turma
-        function toggleTurmaSelect() {
-            const publicoSelect = document.getElementById('publico_alvo_select');
-            const turmaDiv = document.getElementById('turma_select_div');
-            const turmaSelect = document.getElementById('turma_id');
-            if (publicoSelect.value === 'TURMA_ESPECIFICA_ALUNOS') { // Ajustado valor
-                turmaDiv.style.display = 'block';
-                turmaSelect.required = true;
-            } else {
-                turmaDiv.style.display = 'none';
-                turmaSelect.required = false;
-                turmaSelect.value = ''; 
-            }
-        }
-        // Chamar ao carregar a página para estado inicial correto, se o select já tiver um valor
-        document.addEventListener('DOMContentLoaded', toggleTurmaSelect);
     </script>
 
     <script>
@@ -269,10 +302,12 @@ if ($stmt_com_prepare) {
         const currentUserTurmaIdForStudent = 0; 
 
         const defaultUserPhoto = 'img/alunos/default_avatar.png';
-        const defaultProfessorPhoto = 'img/professores/default_avatar_prof.png'; 
-        const defaultCoordenadorPhoto = 'img/coordenadores/default_avatar.png'; // Crie ou ajuste o caminho
+        const defaultProfessorPhoto = 'img/professores/default_avatar.png'; // Ajuste se tiver um específico
+        const defaultCoordenadorPhoto = 'img/coordenadores/default_avatar.png'; // Ajuste se tiver um específico
+
 
         const chatWidget = document.getElementById('academicChatWidget');
+        // Demais seletores de elementos do chat
         const chatHeader = document.getElementById('chatWidgetHeaderAcad');
         const chatToggleBtn = document.getElementById('chatToggleBtnAcad');
         const chatBody = document.getElementById('chatWidgetBodyAcad');
@@ -543,6 +578,6 @@ if ($stmt_com_prepare) {
 </body>
 </html>
 <?php 
-if(isset($stmt_com_prepare)) mysqli_stmt_close($stmt_com_prepare); // Nome da variável de statement corrigido
+if(isset($stmt_relatorios_prepare)) mysqli_stmt_close($stmt_relatorios_prepare); // Corrigido para nome de variável correto
 if(isset($conn) && $conn) mysqli_close($conn); 
 ?>

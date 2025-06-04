@@ -44,11 +44,11 @@ $isPerfilPageActive = (isset($currentPageIdentifier) && $currentPageIdentifier =
             <i class="fas fa-bullhorn"></i> Enviar Comunicado
         </a>
     </li>
-    <li>
-        <a href="coordenacao_gerenciar_turmas.php" <?php if (isset($currentPageIdentifier) && $currentPageIdentifier === 'gerenciar_turmas') echo 'class="active"'; ?>>
-            <i class="fas fa-sitemap"></i> Gerenciar Turmas
-        </a>
-    </li>
+<li>
+    <a href="gerenciar_turmas_coordenacao.php" class="<?php if($currentPageIdentifier == 'gerenciar_turmas_coord' || $currentPageIdentifier == 'minhas_turmas') echo 'active'; ?>"> 
+        <i class="fas fa-sitemap"></i> Gerenciar Turmas
+    </a>
+</li>
      <li>
         <a href="coordenacao_gerenciar_disciplinas.php" <?php if (isset($currentPageIdentifier) && $currentPageIdentifier === 'gerenciar_disciplinas') echo 'class="active"'; ?>>
             <i class="fas fa-book"></i> Gerenciar Disciplinas
