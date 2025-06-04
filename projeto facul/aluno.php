@@ -6,40 +6,31 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'aluno') {
     header("Location: index.html");
     exit();
 }
-// include 'db.php'; // Descomente se for buscar dados do banco para esta página
+// include 'db.php'; // O chat_api.php já incluirá db.php, se necessário para outras operações.
 
 $nome_aluno = $_SESSION['usuario_nome'];
-$aluno_id = $_SESSION['usuario_id']; // Pode ser útil para buscar dados específicos do aluno
-// $turma_id_aluno = $_SESSION['turma_id']; // Pode ser útil
+$aluno_id = $_SESSION['usuario_id']; 
+$turma_id_aluno = isset($_SESSION['turma_id']) ? intval($_SESSION['turma_id']) : 0; 
 
-// Define o identificador da página atual para a sidebar
 $currentPageIdentifier = 'inicio_noticias'; 
-
-// **** NOVO: PEGAR TEMA DA SESSÃO ****
 $tema_global_usuario = isset($_SESSION['tema_usuario']) ? $_SESSION['tema_usuario'] : 'padrao';
-// **** FIM DA ADIÇÃO ****
 
-
-// Dados Estáticos para as Novas Seções:
+// Dados Estáticos (substitua por buscas no banco de dados em uma aplicação real)
 $acesso_rapido_aluno = [
     ["titulo" => "Meu Boletim", "icone" => "fas fa-graduation-cap", "link" => "boletim.php", "cor" => "#208A87"],
     ["titulo" => "Calendário", "icone" => "fas fa-calendar-alt", "link" => "calendario.php", "cor" => "#D69D2A"],
     ["titulo" => "Materiais", "icone" => "fas fa-book-open", "link" => "materiais.php", "cor" => "#5D3A9A"],
     ["titulo" => "Comunicados", "icone" => "fas fa-bell", "link" => "comunicados_aluno.php", "cor" => "#C54B6C"]
 ];
-
-$proximas_atividades = [
-    ["data" => "2025-06-10", "descricao" => "Entrega do Trabalho de História - Revolução Industrial.", "tipo" => "trabalho"],
-    ["data" => "2025-06-15", "descricao" => "Prova Bimestral de Matemática - Unidades 3 e 4.", "tipo" => "prova"],
-    ["data" => "2025-06-20", "descricao" => "Apresentação do Seminário de Ciências.", "tipo" => "evento"]
+$proximas_atividades_static = [
+    ["data" => "2025-06-10", "descricao" => "Entrega do Trabalho de História - Revolução Industrial.", "tipo" => "trabalho", "disciplina" => "História"],
+    ["data" => "2025-06-15", "descricao" => "Prova Bimestral de Matemática - Unidades 3 e 4.", "tipo" => "prova", "disciplina" => "Matemática"],
+    ["data" => "2025-06-20", "descricao" => "Apresentação do Seminário de Ciências.", "tipo" => "evento", "disciplina" => "Ciências"]
 ];
-
-
-// Para este exemplo, usaremos dados estáticos (simulando notícias):
 $noticias_static = [
-    ["titulo" => "Inscrições para o ENEM 2025 Abertas!", "resumo" => "O período de inscrição para o Exame Nacional do Ensino Médio (ENEM) de 2025 já começou. Não perca o prazo e garanta sua participação no maior vestibular do país...", "link_externo" => "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem", "imagem_url" => "img/noticias/enem_2025.jpg", "data_publicacao" => "2025-05-28", "categoria" => "ENEM"],
-    ["titulo" => "Dicas Essenciais para Organizar sua Rotina de Estudos", "resumo" => "Manter uma rotina de estudos organizada é fundamental para o sucesso acadêmico. Confira dicas práticas sobre como criar um cronograma eficiente...", "link_externo" => "#", "imagem_url" => "img/noticias/rotina_estudos.jpg", "data_publicacao" => "2025-05-25", "categoria" => "Dicas de Estudo"],
-    ["titulo" => "Novos Materiais de Matemática Adicionados!", "resumo" => "Professores adicionaram novas videoaulas e listas de exercícios de Matemática na seção de Materiais Didáticos...", "link_externo" => "materiais.php", "imagem_url" => "img/noticias/novos_materiais.jpg", "data_publicacao" => "2025-05-22", "categoria" => "Materiais Didáticos"],
+    ["titulo" => "Inscrições para o ENEM 2025 Abertas!", "resumo" => "O período de inscrição para o Exame Nacional do Ensino Médio (ENEM) de 2025 já começou...", "link_externo" => "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem", "imagem_url" => "img/noticias/enem_2025.jpg", "data_publicacao" => "2025-05-28", "categoria" => "ENEM"],
+    ["titulo" => "Dicas Essenciais para Organizar sua Rotina de Estudos", "resumo" => "Manter uma rotina de estudos organizada é fundamental para o sucesso acadêmico...", "link_externo" => "#", "imagem_url" => "img/noticias/rotina_estudos.jpg", "data_publicacao" => "2025-05-25", "categoria" => "Dicas de Estudo"],
+    ["titulo" => "Novos Materiais de Matemática Adicionados!", "resumo" => "Professores adicionaram novas videoaulas e listas de exercícios de Matemática...", "link_externo" => "materiais.php", "imagem_url" => "img/noticias/novos_materiais.jpg", "data_publicacao" => "2025-05-22", "categoria" => "Materiais Didáticos"],
 ];
 ?>
 <!DOCTYPE html>
@@ -48,69 +39,95 @@ $noticias_static = [
     <meta charset="UTF-8">
     <title>Portal do Aluno - ACADMIX</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/aluno.css"> <link rel="stylesheet" href="css/temas_globais.css">
+    <link rel="stylesheet" href="css/aluno.css">
+    <link rel="stylesheet" href="css/temas_globais.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <?php if ($tema_global_usuario === '8bit'): ?>
         <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <?php endif; ?>
     <style>
-        /* Estilos inline que você tinha. Mova o máximo possível para css/aluno.css ou temas_globais.css */
-        .main-content h2.section-title { /* Título para seções como Acesso Rápido, Próximas Atividades */
-            font-size: 1.6rem;
-            /* color: #2C1B17; -- Virá do tema */
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            /* border-bottom: 2px solid #D69D2A; -- Virá do tema ou aluno.css */
-        }
-         .main-content h2.page-title { /* Título "Fique por Dentro" */
-            text-align: center; font-size: 1.8rem; margin-bottom: 1.5rem;
-            padding-bottom: 0.5rem; display: inline-block;
-            /* color, border-bottom virão do tema ou aluno.css */
-        }
-        .welcome-message-aluno {
-            text-align: center; font-size: 1.5rem; 
-            /* color: #333; -- Virá do tema */
-            margin-bottom: 2rem; /* Aumentado para separar do Acesso Rápido */
-            font-weight: 500;
-        }
-
-        /* Acesso Rápido (similar ao do professor) */
+        /* Estilos estruturais. Cores/fontes de temas_globais.css e aluno.css */
+        .main-content h2.section-title { font-size: 1.6rem; margin-top: 2rem; margin-bottom: 1rem; padding-bottom: 0.5rem; }
+        .main-content h2.page-title { text-align: center; font-size: 1.8rem; margin-bottom: 1.5rem; padding-bottom: 0.5rem; display: inline-block; }
+        .welcome-message-aluno { text-align: center; font-size: 1.5rem; margin-bottom: 2rem; font-weight: 500; }
+        
         .quick-access-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-        .quick-access-card { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.2rem 1rem; border-radius: 8px; text-decoration: none; transition: transform 0.2s, box-shadow 0.2s; min-height: 110px; /* background-color e color virão do tema */ }
-        .quick-access-card:hover { transform: translateY(-5px); /* box-shadow virá do tema */ }
+        .quick-access-card { 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            padding: 1.2rem 1rem; border-radius: 8px; text-decoration: none; 
+            transition: transform 0.2s, box-shadow 0.2s; min-height: 110px; 
+            color: white; /* Cor do texto específica para estes cards com fundo colorido */
+        }
+        .quick-access-card:hover { transform: translateY(-5px); }
         .quick-access-card i { font-size: 2.2rem; margin-bottom: 0.7rem; }
         .quick-access-card span { font-size: 0.95rem; font-weight: bold; text-align: center; }
-
-        /* Próximas Atividades */
+        
         .upcoming-activities ul { list-style: none; padding-left: 0; }
-        .upcoming-activities li {
-            /* background-color: #f9f9f9; -- Virá do tema */
-            padding: 0.8rem 1rem; margin-bottom: 0.7rem; border-radius: 4px;
-            /* border, border-left virão do tema ou aluno.css */
-            font-size: 0.95rem;
+        .upcoming-activities li { 
+            padding: 0.8rem 1rem; margin-bottom: 0.7rem; border-radius: 4px; font-size: 0.95rem; 
         }
-        .upcoming-activities li .activity-date { font-weight: bold; /* color virá do tema */ }
-        .upcoming-activities li .activity-tipo-trabalho { color: #17a2b8; } /* Azul Info */
-        .upcoming-activities li .activity-tipo-prova { color: #dc3545; } /* Vermelho Perigo */
-        .upcoming-activities li .activity-tipo-evento { color: #ffc107; } /* Amarelo Aviso */
-
-        /* Feed de Notícias (estilos anteriores mantidos e ajustados) */
+        .upcoming-activities li .activity-date { font-weight: bold; }
+        .upcoming-activities li.activity-tipo-trabalho { border-left: 3px solid #17a2b8; } 
+        .upcoming-activities li.activity-tipo-prova { border-left: 3px solid #dc3545; } 
+        .upcoming-activities li.activity-tipo-evento { border-left: 3px solid #ffc107; } 
+        
         .news-feed { display: grid; gap: 1.5rem; }
-        .news-item { /* background-color, border, box-shadow virão do tema */ border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s ease-in-out; }
+        .news-item { 
+            border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; 
+            transition: transform 0.2s ease-in-out; 
+        }
         .news-item:hover { transform: translateY(-5px); }
         .news-image-container { width: 100%; max-height: 200px; overflow: hidden; }
         .news-image { width: 100%; height: 100%; object-fit: cover; display: block; }
         .news-content { padding: 1rem 1.5rem 1.5rem 1.5rem; flex-grow: 1; display: flex; flex-direction: column; }
-        .news-title { font-size: 1.3rem; /* color virá do tema */ margin-bottom: 0.5rem; }
-        .news-meta { font-size: 0.8rem; /* color virá do tema */ margin-bottom: 0.75rem; }
+        .news-title { font-size: 1.3rem; margin-bottom: 0.5rem; }
+        .news-meta { font-size: 0.8rem; margin-bottom: 0.75rem; }
         .news-meta .news-date { font-weight: bold; }
-        .news-meta .news-category { /* background-color, color virá do tema */ padding: 0.2rem 0.5rem; border-radius: 4px; }
-        .news-summary { font-size: 0.95rem; /* color virá do tema */ line-height: 1.6; margin-bottom: 1rem; flex-grow: 1; }
-        .btn-news-readmore { display: inline-block; padding: 0.5rem 1rem; /* background-color, color virão do tema */ text-decoration: none; border-radius: 4px; font-size: 0.9rem; text-align: center; align-self: flex-start; transition: background-color 0.3s; }
-        /* .btn-news-readmore:hover { background-color: #C58624; -- Virá do tema } */
+        .news-meta .news-category { 
+            padding: 0.2rem 0.5rem; border-radius: 4px; 
+        }
+        .news-summary { font-size: 0.95rem; line-height: 1.6; margin-bottom: 1rem; flex-grow: 1; }
+        .btn-news-readmore { 
+            display: inline-block; padding: 0.5rem 1rem; 
+            text-decoration: none; border-radius: 4px; font-size: 0.9rem; 
+            text-align: center; align-self: flex-start; transition: background-color 0.3s; 
+        }
         .btn-news-readmore i { margin-left: 5px; }
-        .no-news, .no-activities { text-align: center; padding: 30px; font-size: 1.2rem; /* color virá do tema */ }
+        .no-news, .no-activities { text-align: center; padding: 30px; font-size: 1.2rem; }
+
+        /* --- CSS NOVO CHAT ACADÊMICO --- */
+        .chat-widget-acad { position: fixed; bottom: 0; right: 20px; width: 320px; border-top-left-radius: 10px; border-top-right-radius: 10px; box-shadow: 0 -2px 10px rgba(0,0,0,0.15); z-index: 1000; overflow: hidden; transition: height 0.3s ease-in-out; }
+        .chat-widget-acad.chat-collapsed { height: 45px; }
+        .chat-widget-acad.chat-expanded { height: 450px; }
+        .chat-header-acad { padding: 10px 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background-color: var(--primary-color, #007bff); color: var(--button-text-color, white); border-top-left-radius: 10px; border-top-right-radius: 10px; }
+        .chat-header-acad span { font-weight: bold; }
+        .chat-toggle-btn-acad { background: none; border: none; color: var(--button-text-color, white); font-size: 1.2rem; cursor: pointer; transition: transform 0.3s ease-in-out; }
+        .chat-expanded .chat-toggle-btn-acad { transform: rotate(180deg); }
+        .chat-body-acad { height: calc(100% - 45px); display: flex; flex-direction: column; background-color: var(--background-color, white); border-left: 1px solid var(--border-color, #ddd); border-right: 1px solid var(--border-color, #ddd); border-bottom: 1px solid var(--border-color, #ddd); }
+        #chatUserListScreenAcad, #chatConversationScreenAcad { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+        .chat-search-container-acad { padding: 8px; }
+        #chatSearchUserAcad { width: 100%; padding: 8px 10px; border: 1px solid var(--border-color-soft, #eee); border-radius: 20px; box-sizing: border-box; font-size: 0.9em; }
+        #chatUserListUlAcad { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex-grow: 1; }
+        #chatUserListUlAcad li { padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--border-color-soft, #eee); display: flex; align-items: center; gap: 10px; color: var(--text-color, #333); }
+        #chatUserListUlAcad li:hover { background-color: var(--hover-background-color, #f0f0f0); }
+        #chatUserListUlAcad li img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
+        #chatUserListUlAcad li .chat-user-name-acad { flex-grow: 1; font-size: 0.9em; }
+        .chat-user-professor-acad .chat-user-name-acad { font-weight: bold; }
+        .teacher-icon-acad { margin-left: 5px; color: var(--primary-color, #007bff); font-size: 0.9em; }
+        .chat-conversation-header-acad { padding: 8px 10px; display: flex; align-items: center; border-bottom: 1px solid var(--border-color-soft, #eee); background-color: var(--background-color-offset, #f9f9f9); gap: 10px; }
+        #chatBackToListBtnAcad { background: none; border: none; font-size: 1.1rem; cursor: pointer; padding: 5px; color: var(--primary-color, #007bff); }
+        .chat-conversation-photo-acad { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
+        #chatConversationUserNameAcad { font-weight: bold; font-size: 0.95em; color: var(--text-color, #333); }
+        #chatMessagesContainerAcad { flex-grow: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+        .message-acad { padding: 8px 12px; border-radius: 15px; max-width: 75%; word-wrap: break-word; font-size: 0.9em; }
+        .message-acad.sent-acad { background-color: var(--primary-color-light, #dcf8c6); color: var(--text-color, #333); align-self: flex-end; border-bottom-right-radius: 5px; }
+        .message-acad.received-acad { background-color: var(--accent-color-extra-light, #f1f0f0); color: var(--text-color, #333); align-self: flex-start; border-bottom-left-radius: 5px; }
+        .message-acad.error-acad { background-color: #f8d7da; color: #721c24; align-self: flex-end; border: 1px solid #f5c6cb;}
+        .chat-message-input-area-acad { display: flex; padding: 8px 10px; border-top: 1px solid var(--border-color-soft, #eee); background-color: var(--background-color-offset, #f9f9f9); gap: 8px; }
+        #chatMessageInputAcad { flex-grow: 1; padding: 8px 12px; border: 1px solid var(--border-color, #ddd); border-radius: 20px; resize: none; font-size: 0.9em; min-height: 20px; max-height: 80px; overflow-y: auto; }
+        #chatSendMessageBtnAcad { background: var(--primary-color, #007bff); color: var(--button-text-color, white); border: none; border-radius: 50%; width: 38px; height: 38px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+        #chatSendMessageBtnAcad:hover { background: var(--primary-color-dark, #0056b3); }
+        /* --- FIM CSS NOVO CHAT ACADÊMICO --- */
     </style>
 </head>
 <body class="theme-<?php echo htmlspecialchars($tema_global_usuario); ?>"> 
@@ -119,19 +136,18 @@ $noticias_static = [
         <button id="menu-toggle" class="menu-btn"><i class="fas fa-bars"></i></button>
         <h1>ACADMIX - Portal do Aluno</h1>
         <form action="logout.php" method="post" style="display: inline;">
-            <button type="submit" id="logoutBtnHeader"><i class="fas fa-sign-out-alt"></i> Sair</button>
+            <button type="submit" id="logoutBtnHeader" class="button button-logout"> <i class="fas fa-sign-out-alt"></i> Sair
+            </button>
         </form>
     </header>
 
-    <div class="container">
+    <div class="container" id="pageContainer">
         <nav class="sidebar" id="sidebar">
             <?php
-            $sidebar_path = __DIR__ . '/includes/sidebar_aluno.php'; // Usando o include da sidebar do aluno
+            $sidebar_path = __DIR__ . '/includes/sidebar_aluno.php'; 
             if (file_exists($sidebar_path)) {
                 include $sidebar_path;
             } else {
-                // Fallback caso o arquivo não seja encontrado
-                 echo "<ul><li><a href='aluno.php' class='active'><i class='fas fa-home'></i> Início</a></li><li><a href='#'><i class='fas fa-user'></i> Perfil</a></li></ul>"; // Exemplo mínimo
                 echo "<p style='padding:1rem; color:white;'>Erro: Arquivo da sidebar não encontrado.</p>";
             }
             ?>
@@ -146,7 +162,7 @@ $noticias_static = [
                 <h2 class="section-title" style="text-align:left; display:block;">Acesso Rápido</h2>
                 <div class="quick-access-grid">
                     <?php foreach ($acesso_rapido_aluno as $item): ?>
-                        <a href="<?php echo htmlspecialchars($item['link']); ?>" class="quick-access-card" style="background-color: <?php echo htmlspecialchars($item['cor']); ?>; color:white;">
+                        <a href="<?php echo htmlspecialchars($item['link']); ?>" class="quick-access-card card" style="background-color: <?php echo htmlspecialchars($item['cor']); ?>;">
                             <i class="<?php echo htmlspecialchars($item['icone']); ?>"></i>
                             <span><?php echo htmlspecialchars($item['titulo']); ?></span>
                         </a>
@@ -154,16 +170,19 @@ $noticias_static = [
                 </div>
             </section>
 
-            <section class="dashboard-section upcoming-activities">
+            <section class="dashboard-section upcoming-activities card">
                 <h2 class="section-title" style="text-align:left; display:block;">Próximas Atividades e Prazos</h2>
-                <?php if (empty($proximas_atividades)): ?>
+                <?php if (empty($proximas_atividades_static)): ?>
                     <p class="no-activities">Nenhuma atividade programada por enquanto.</p>
                 <?php else: ?>
                     <ul>
-                        <?php foreach ($proximas_atividades as $atividade): ?>
-                            <li class="activity-tipo-<?php echo htmlspecialchars($atividade['tipo']); ?>">
+                        <?php foreach ($proximas_atividades_static as $atividade): ?>
+                            <li class="activity-tipo-<?php echo htmlspecialchars($atividade['tipo']); ?> card-item"> 
                                 <span class="activity-date"><i class="fas fa-calendar-day"></i> <?php echo date("d/m/Y", strtotime($atividade['data'])); ?>:</span>
                                 <?php echo htmlspecialchars($atividade['descricao']); ?>
+                                <?php if(!empty($atividade['disciplina'])): ?>
+                                    <span style="font-size:0.8em; opacity:0.7;"> (<?php echo htmlspecialchars($atividade['disciplina']); ?>)</span>
+                                <?php endif; ?>
                             </li>
                         <?php endforeach; ?>
                     </ul>
@@ -171,14 +190,14 @@ $noticias_static = [
             </section>
 
             <div style="text-align: center; margin-top: 2rem;"> 
-                 <h2 class="page-title">Fique por Dentro!</h2>
+                <h2 class="page-title">Fique por Dentro!</h2>
             </div>
             <div class="news-feed">
                 <?php if (empty($noticias_static)): ?>
                     <p class="no-news">Nenhuma notícia ou atualização no momento.</p>
                 <?php else: ?>
                     <?php foreach ($noticias_static as $noticia): ?>
-                        <article class="news-item">
+                        <article class="news-item card">
                             <?php if (!empty($noticia['imagem_url']) && file_exists($noticia['imagem_url'])): ?>
                             <div class="news-image-container">
                                 <img src="<?php echo htmlspecialchars($noticia['imagem_url']); ?>" alt="Imagem para <?php echo htmlspecialchars($noticia['titulo']); ?>" class="news-image">
@@ -189,16 +208,16 @@ $noticias_static = [
                                 <p class="news-meta">
                                     <span class="news-date"><i class="fas fa-calendar-alt"></i> <?php echo date("d/m/Y", strtotime($noticia['data_publicacao'])); ?></span>
                                     <?php if(!empty($noticia['categoria'])): ?>
-                                        | <span class="news-category"><?php echo htmlspecialchars($noticia['categoria']); ?></span>
+                                        | <span class="news-category tag"><?php echo htmlspecialchars($noticia['categoria']); ?></span>
                                     <?php endif; ?>
                                 </p>
                                 <p class="news-summary"><?php echo htmlspecialchars($noticia['resumo']); ?></p>
                                 <?php if (!empty($noticia['link_externo']) && $noticia['link_externo'] !== '#'): ?>
-                                <a href="<?php echo htmlspecialchars($noticia['link_externo']); ?>" class="btn-news-readmore" target="_blank">
+                                <a href="<?php echo htmlspecialchars($noticia['link_externo']); ?>" class="btn-news-readmore button" target="_blank">
                                     Saiba Mais <i class="fas fa-external-link-alt"></i>
                                 </a>
                                 <?php elseif ($noticia['link_externo'] === 'materiais.php'): ?>
-                                 <a href="<?php echo htmlspecialchars($noticia['link_externo']); ?>" class="btn-news-readmore">
+                                 <a href="<?php echo htmlspecialchars($noticia['link_externo']); ?>" class="btn-news-readmore button">
                                     Ver Materiais <i class="fas fa-arrow-right"></i>
                                  </a>
                                 <?php endif; ?>
@@ -210,17 +229,290 @@ $noticias_static = [
         </main>
     </div>
 
+    <div id="academicChatWidget" class="chat-widget-acad chat-collapsed">
+        <div id="chatWidgetHeaderAcad" class="chat-header-acad">
+            <span><i class="fas fa-comments"></i> Chat Acadêmico</span>
+            <button id="chatToggleBtnAcad" class="chat-toggle-btn-acad" aria-label="Abrir ou fechar chat"><i class="fas fa-chevron-up"></i></button>
+        </div>
+        <div id="chatWidgetBodyAcad" class="chat-body-acad" style="display: none;">
+            <div id="chatUserListScreenAcad">
+                <div class="chat-search-container-acad">
+                    <input type="text" id="chatSearchUserAcad" placeholder="Pesquisar Alunos/Professores...">
+                </div>
+                <ul id="chatUserListUlAcad"></ul>
+            </div>
+            <div id="chatConversationScreenAcad" style="display: none;">
+                <div class="chat-conversation-header-acad">
+                    <button id="chatBackToListBtnAcad" aria-label="Voltar para lista de contatos"><i class="fas fa-arrow-left"></i></button>
+                    <img id="chatConversationUserPhotoAcad" src="img/alunos/default_avatar.png" alt="Foto do Contato" class="chat-conversation-photo-acad">
+                    <span id="chatConversationUserNameAcad">Nome do Contato</span>
+                </div>
+                <div id="chatMessagesContainerAcad"></div>
+                <div class="chat-message-input-area-acad">
+                    <textarea id="chatMessageInputAcad" placeholder="Digite sua mensagem..." rows="1"></textarea>
+                    <button id="chatSendMessageBtnAcad" aria-label="Enviar mensagem"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        const menuToggle = document.getElementById('menu-toggle');
-        const sidebar = document.getElementById('sidebar');
-        const container = document.querySelector('.container');
-        if (menuToggle && sidebar && container) {
-            menuToggle.addEventListener('click', function () {
-                sidebar.classList.toggle('hidden'); 
-                container.classList.toggle('full-width'); 
+        // Script do menu lateral padronizado
+        const menuToggleButtonGlobal = document.getElementById('menu-toggle');
+        const sidebarElementGlobal = document.getElementById('sidebar');    
+        const pageContainerGlobal = document.getElementById('pageContainer'); 
+
+        if (menuToggleButtonGlobal && sidebarElementGlobal && pageContainerGlobal) {
+            menuToggleButtonGlobal.addEventListener('click', function () {
+                sidebarElementGlobal.classList.toggle('hidden'); 
+                pageContainerGlobal.classList.toggle('full-width'); 
             });
         }
     </script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const currentUserId = <?php echo json_encode($aluno_id); ?>;
+        const currentUserTurmaId = <?php echo json_encode($turma_id_aluno); ?>; 
+        const defaultUserPhoto = 'img/alunos/default_avatar.png'; 
+
+        const chatWidget = document.getElementById('academicChatWidget');
+        const chatHeader = document.getElementById('chatWidgetHeaderAcad');
+        const chatToggleBtn = document.getElementById('chatToggleBtnAcad'); 
+        const chatBody = document.getElementById('chatWidgetBodyAcad');
+
+        const userListScreen = document.getElementById('chatUserListScreenAcad');
+        const searchUserInput = document.getElementById('chatSearchUserAcad');
+        const userListUl = document.getElementById('chatUserListUlAcad');
+
+        const conversationScreen = document.getElementById('chatConversationScreenAcad');
+        const backToListBtn = document.getElementById('chatBackToListBtnAcad');
+        const conversationUserPhoto = document.getElementById('chatConversationUserPhotoAcad');
+        const conversationUserName = document.getElementById('chatConversationUserNameAcad');
+        const messagesContainer = document.getElementById('chatMessagesContainerAcad');
+        const messageInput = document.getElementById('chatMessageInputAcad');
+        const sendMessageBtn = document.getElementById('chatSendMessageBtnAcad');
+
+        let allTurmaUsers = []; 
+        let currentConversationWith = null; 
+        let isChatInitiallyLoaded = false;
+
+        function toggleChat() {
+            const isCollapsed = chatWidget.classList.contains('chat-collapsed');
+            if (isCollapsed) {
+                chatWidget.classList.remove('chat-collapsed');
+                chatWidget.classList.add('chat-expanded');
+                chatBody.style.display = 'flex';
+                chatToggleBtn.innerHTML = '<i class="fas fa-chevron-down"></i>';
+                if (!isChatInitiallyLoaded) { 
+                    fetchAndDisplayTurmaUsers();
+                    isChatInitiallyLoaded = true;
+                }
+                if (!currentConversationWith) { 
+                    showUserListScreen();
+                } else { 
+                    showConversationScreen(currentConversationWith, false); 
+                }
+            } else {
+                chatWidget.classList.add('chat-collapsed');
+                chatWidget.classList.remove('chat-expanded');
+                chatBody.style.display = 'none';
+                chatToggleBtn.innerHTML = '<i class="fas fa-chevron-up"></i>';
+            }
+        }
+
+        function showUserListScreen() {
+            userListScreen.style.display = 'flex';
+            conversationScreen.style.display = 'none';
+        }
+
+        function showConversationScreen(contact, shouldFetchMessages = true) {
+            currentConversationWith = contact; 
+            userListScreen.style.display = 'none';
+            conversationScreen.style.display = 'flex';
+            conversationUserName.textContent = contact.nome;
+            conversationUserPhoto.src = contact.foto_url || defaultUserPhoto;
+            
+            if (shouldFetchMessages) {
+                messagesContainer.innerHTML = ''; 
+                fetchAndDisplayMessages(contact.id);
+            }
+            messageInput.focus();
+        }
+        
+        async function fetchAndDisplayTurmaUsers() {
+            if (currentUserTurmaId === 0) {
+                userListUl.innerHTML = '<li>Turma não definida.</li>';
+                return;
+            }
+            userListUl.innerHTML = '<li><i class="fas fa-spinner fa-spin"></i> Carregando usuários...</li>';
+            
+            try {
+                const response = await fetch(`chat_api.php?action=get_turma_users`);
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP error ${response.status}: ${errorText}`);
+                }
+                const users = await response.json();
+
+                if (users.error) {
+                    console.error('API Erro (get_turma_users):', users.error);
+                    userListUl.innerHTML = `<li>Erro: ${users.error}</li>`;
+                    return;
+                }
+                allTurmaUsers = users;
+                renderUserList(allTurmaUsers);
+
+            } catch (error) {
+                console.error('Falha ao buscar usuários:', error);
+                userListUl.innerHTML = '<li>Falha ao carregar contatos.</li>';
+            }
+        }
+
+        function renderUserList(usersToRender) {
+            userListUl.innerHTML = '';
+            if (!usersToRender || usersToRender.length === 0) {
+                userListUl.innerHTML = '<li>Nenhum contato encontrado.</li>';
+                return;
+            }
+            usersToRender.forEach(user => {
+                const li = document.createElement('li');
+                li.dataset.userid = user.id;
+                
+                const img = document.createElement('img');
+                img.src = user.foto_url || defaultUserPhoto;
+                img.alt = `Foto de ${user.nome}`;
+                li.appendChild(img);
+
+                const nameSpan = document.createElement('span');
+                nameSpan.classList.add('chat-user-name-acad');
+                nameSpan.textContent = user.nome;
+                li.appendChild(nameSpan);
+
+                if (user.role === 'professor') {
+                    li.classList.add('chat-user-professor-acad');
+                    const teacherIcon = document.createElement('i');
+                    teacherIcon.className = 'fas fa-chalkboard-teacher teacher-icon-acad';
+                    nameSpan.appendChild(teacherIcon);
+                }
+                
+                li.addEventListener('click', () => {
+                    showConversationScreen(user, true); 
+                });
+                userListUl.appendChild(li);
+            });
+        }
+
+        async function fetchAndDisplayMessages(contactId) {
+            messagesContainer.innerHTML = '<p style="text-align:center;font-size:0.8em;"><i class="fas fa-spinner fa-spin"></i> Carregando...</p>';
+            try {
+                const response = await fetch(`chat_api.php?action=get_messages&contact_id=${contactId}`);
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP error ${response.status}: ${errorText}`);
+                }
+                const messages = await response.json();
+
+                if (messages.error) {
+                    console.error('API Erro (get_messages):', messages.error);
+                    messagesContainer.innerHTML = `<p style="text-align:center;color:red;">Erro: ${messages.error}</p>`;
+                    return;
+                }
+
+                messagesContainer.innerHTML = ''; 
+                if (messages.length === 0) {
+                    messagesContainer.innerHTML = '<p style="text-align:center;font-size:0.8em;color:#888;">Sem mensagens.</p>';
+                } else {
+                    messages.forEach(msg => {
+                        appendMessageToChat(msg.message_text, parseInt(msg.sender_id) === currentUserId ? 'sent-acad' : 'received-acad');
+                    });
+                }
+            } catch (error) {
+                console.error('Falha ao buscar mensagens:', error);
+                messagesContainer.innerHTML = '<p style="text-align:center;color:red;">Falha ao carregar.</p>';
+            }
+        }
+
+        function appendMessageToChat(text, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message-acad', type);
+            messageDiv.textContent = text; 
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        async function handleSendMessage() {
+            const text = messageInput.value.trim();
+            if (text === '' || !currentConversationWith) return;
+
+            appendMessageToChat(text, 'sent-acad');
+            const messageTextForApi = text; 
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+            messageInput.focus();
+
+            try {
+                const response = await fetch('chat_api.php', { 
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', },
+                    body: JSON.stringify({
+                        action: 'send_message',
+                        receiver_id: currentConversationWith.id,
+                        text: messageTextForApi 
+                    })
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP error ${response.status}: ${errorText}`);
+                }
+                const result = await response.json();
+
+                if (result.error) {
+                    console.error('API Erro (send_message):', result.error);
+                    appendMessageToChat(`Falha: ${result.error.substring(0,50)}...`, 'error-acad');
+                } else if (!result.success) {
+                     console.error('API reportou falha no envio:', result);
+                     appendMessageToChat(`Falha (API).`, 'error-acad');
+                }
+            } catch (error) {
+                console.error('Falha ao enviar mensagem:', error);
+                appendMessageToChat(`Falha na rede.`, 'error-acad');
+            }
+        }
+
+        chatHeader.addEventListener('click', (event) => {
+            if (event.target.closest('#chatToggleBtnAcad') || event.target.id === 'chatToggleBtnAcad') {
+                 toggleChat();
+            } else if (event.target === chatHeader || chatHeader.contains(event.target)) {
+                toggleChat();
+            }
+        });
+
+        backToListBtn.addEventListener('click', () => {
+            showUserListScreen(); 
+        });
+
+        searchUserInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const filteredUsers = allTurmaUsers.filter(user => 
+                user.nome.toLowerCase().includes(searchTerm)
+            );
+            renderUserList(filteredUsers);
+        });
+
+        sendMessageBtn.addEventListener('click', handleSendMessage);
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage();
+            }
+        });
+        messageInput.addEventListener('input', function() { 
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+    });
+    </script>
 </body>
 </html>
-<?php if(isset($conn) && $conn) mysqli_close($conn); ?>
+<?php // if(isset($conn) && $conn) mysqli_close($conn); // A conexão do banco de dados principal é fechada no final do script, se aberta. ?>
