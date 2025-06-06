@@ -145,7 +145,7 @@ $tema_global_usuario = isset($_SESSION['tema_usuario']) ? $_SESSION['tema_usuari
                     <i class="fas fa-bullhorn card-comunicado"></i>
                     <span>Enviar Comunicado</span>
                 </a>
-                <a href="coordenacao_gerenciar_turmas.php" class="dashboard-card card">
+                <a href="gerenciar_turmas_coordenacao.php" class="dashboard-card card">
                     <i class="fas fa-sitemap card-turma"></i>
                     <span>Gerenciar Turmas</span>
                 </a>

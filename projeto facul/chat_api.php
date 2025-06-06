@@ -3,13 +3,13 @@ session_start();
 include 'db.php'; // Seu arquivo de conexão com o banco de dados
 
 header('Content-Type: application/json');
-mysqli_set_charset($conn, "utf8mb4"); 
 
 if (!$conn || $conn->connect_error) {
     error_log("chat_api.php: CRÍTICO - Falha na conexão com o banco de dados (db.php). Erro: " . ($conn ? $conn->connect_error : 'Variável $conn não definida/falsa'));
     echo json_encode(['error' => 'Erro crítico de conexão com o servidor de dados.']);
     exit;
 }
+mysqli_set_charset($conn, "utf8mb4"); 
 
 if (!isset($_SESSION['usuario_id']) || !isset($_SESSION['role'])) {
     error_log("chat_api.php: Tentativa de acesso não autenticado ou sem papel definido. Session: " . print_r($_SESSION, true));
@@ -54,33 +54,41 @@ switch ($action) {
              echo json_encode(['error' => 'Acesso negado para esta ação. Apenas para alunos.']);
              exit;
         }
-        if (!isset($_SESSION['turma_id'])) {
-            error_log("chat_api.php: Turma do aluno (usuario_id: {$current_user_id}) não definida na sessão.");
-            echo json_encode(['error' => 'Turma do usuário não definida na sessão.']);
+        if (!isset($_SESSION['turma_id']) || intval($_SESSION['turma_id']) === 0) { // Verifica se turma_id é válida
+            error_log("chat_api.php: Turma do aluno (usuario_id: {$current_user_id}) não definida ou inválida na sessão.");
+            echo json_encode(['error' => 'Turma do usuário não definida na sessão para buscar contatos.']);
             exit;
         }
         $turma_id = intval($_SESSION['turma_id']);
         $users = [];
         $processed_user_ids_roles = []; 
+        $db_error_occurred = false;
 
+        // 1. Buscar Alunos da Turma (exceto o próprio usuário logado)
         $sql_alunos = "SELECT id, nome, foto_url, 'aluno' as role FROM alunos WHERE turma_id = ? AND id != ?";
         $stmt_alunos = mysqli_prepare($conn, $sql_alunos);
         if ($stmt_alunos) {
             mysqli_stmt_bind_param($stmt_alunos, "ii", $turma_id, $current_user_id);
-            mysqli_stmt_execute($stmt_alunos);
-            $result_alunos = mysqli_stmt_get_result($stmt_alunos);
-            while ($row = mysqli_fetch_assoc($result_alunos)) {
-                $unique_key = $row['id'] . "_aluno";
-                if (!isset($processed_user_ids_roles[$unique_key])) {
-                    $users[] = $row;
-                    $processed_user_ids_roles[$unique_key] = true;
+            if (mysqli_stmt_execute($stmt_alunos)) {
+                $result_alunos = mysqli_stmt_get_result($stmt_alunos);
+                while ($row = mysqli_fetch_assoc($result_alunos)) {
+                    $unique_key = $row['id'] . "_aluno";
+                    if (!isset($processed_user_ids_roles[$unique_key])) {
+                        $users[] = $row;
+                        $processed_user_ids_roles[$unique_key] = true;
+                    }
                 }
+            } else {
+                error_log("Chat API Erro (get_turma_users - alunos execute): " . mysqli_stmt_error($stmt_alunos));
+                $db_error_occurred = true;
             }
             mysqli_stmt_close($stmt_alunos);
         } else {
             error_log("Chat API Erro (get_turma_users - alunos prepare): " . mysqli_error($conn));
+            $db_error_occurred = true;
         }
 
+        // 2. Buscar Professores da Turma específica do aluno
         $sql_professores = "SELECT DISTINCT p.id, p.nome, p.foto_url, 'professor' as role 
                             FROM professores p
                             JOIN disciplinas d ON p.id = d.professor_id
@@ -88,23 +96,53 @@ switch ($action) {
         $stmt_professores = mysqli_prepare($conn, $sql_professores);
         if ($stmt_professores) {
             mysqli_stmt_bind_param($stmt_professores, "i", $turma_id);
-            mysqli_stmt_execute($stmt_professores);
-            $result_professores = mysqli_stmt_get_result($stmt_professores);
-            while ($row = mysqli_fetch_assoc($result_professores)) {
-                $unique_key = $row['id'] . "_professor";
-                if (!isset($processed_user_ids_roles[$unique_key])) {
-                    $users[] = $row;
-                    $processed_user_ids_roles[$unique_key] = true;
+            if (mysqli_stmt_execute($stmt_professores)) {
+                $result_professores = mysqli_stmt_get_result($stmt_professores);
+                while ($row = mysqli_fetch_assoc($result_professores)) {
+                    $unique_key = $row['id'] . "_professor";
+                    if (!isset($processed_user_ids_roles[$unique_key])) {
+                        $users[] = $row;
+                        $processed_user_ids_roles[$unique_key] = true;
+                    }
                 }
+            } else {
+                error_log("Chat API Erro (get_turma_users - professores execute): " . mysqli_stmt_error($stmt_professores));
+                $db_error_occurred = true;
             }
             mysqli_stmt_close($stmt_professores);
         } else {
             error_log("Chat API Erro (get_turma_users - professores prepare): " . mysqli_error($conn));
+            $db_error_occurred = true;
+        }
+
+        // 3. Buscar Todos os Coordenadores (não são filtrados por turma)
+        // Assumindo que alunos podem contatar qualquer coordenador
+        $sql_coordenadores = "SELECT id, nome, foto_url, 'coordenador' as role FROM coordenadores";
+        // Se um coordenador puder ser o aluno logado (improvável), adicione "WHERE id != ?"
+        $stmt_coordenadores = mysqli_prepare($conn, $sql_coordenadores);
+        if ($stmt_coordenadores) {
+            if (mysqli_stmt_execute($stmt_coordenadores)) {
+                $result_coordenadores = mysqli_stmt_get_result($stmt_coordenadores);
+                while ($row = mysqli_fetch_assoc($result_coordenadores)) {
+                    $unique_key = $row['id'] . "_coordenador";
+                     if (!isset($processed_user_ids_roles[$unique_key])) {
+                        $users[] = $row;
+                        $processed_user_ids_roles[$unique_key] = true;
+                    }
+                }
+            } else {
+                error_log("Chat API Erro (get_turma_users - coordenadores execute): " . mysqli_stmt_error($stmt_coordenadores));
+                $db_error_occurred = true;
+            }
+            mysqli_stmt_close($stmt_coordenadores);
+        } else {
+            error_log("Chat API Erro (get_turma_users - coordenadores prepare): " . mysqli_error($conn));
+            $db_error_occurred = true;
         }
         
-        if (empty($users) && (mysqli_errno($conn) != 0) ) { 
-             error_log("Chat API: Erro DB em get_turma_users: " . mysqli_error($conn));
-             echo json_encode(['error' => 'Erro ao buscar contatos da turma.']);
+        if ($db_error_occurred) { // Se qualquer erro de DB ocorreu durante o processo
+             error_log("Chat API: Um ou mais erros de DB ocorreram em get_turma_users para usuario_id: " . $current_user_id);
+             echo json_encode(['error' => 'Erro ao buscar contatos da turma. Consulte o administrador.']);
         } else {
              echo json_encode($users);
         }
@@ -119,6 +157,7 @@ switch ($action) {
         $professor_id_session = $current_user_id;
         $contacts = [];
         $processed_user_ids_roles = []; 
+        $db_error_occurred_prof = false;
 
         $sql_alunos_do_professor = "SELECT DISTINCT a.id, a.nome, a.foto_url, 'aluno' as role
                                     FROM alunos a
@@ -140,6 +179,7 @@ switch ($action) {
             mysqli_stmt_close($stmt_alunos_prof);
         } else {
             error_log("Chat API Erro (get_professor_contacts - alunos prepare): " . mysqli_error($conn));
+            $db_error_occurred_prof = true;
         }
 
         $sql_outros_profs = "SELECT id, nome, foto_url, 'professor' as role 
@@ -160,6 +200,7 @@ switch ($action) {
             mysqli_stmt_close($stmt_outros_profs);
         } else {
             error_log("Chat API Erro (get_professor_contacts - outros profs prepare): " . mysqli_error($conn));
+            $db_error_occurred_prof = true;
         }
 
         $sql_coordenadores = "SELECT id, nome, foto_url, 'coordenador' as role FROM coordenadores";
@@ -168,7 +209,7 @@ switch ($action) {
             mysqli_stmt_execute($stmt_coords);
             $result_coords = mysqli_stmt_get_result($stmt_coords);
             while ($row_coord = mysqli_fetch_assoc($result_coords)) {
-                $unique_key = $row_coord['id'] . "_" . $row_coord['role'];
+                 $unique_key = $row_coord['id'] . "_" . $row_coord['role'];
                 if (!isset($processed_user_ids_roles[$unique_key])) {
                      $contacts[] = $row_coord;
                      $processed_user_ids_roles[$unique_key] = true;
@@ -177,11 +218,12 @@ switch ($action) {
             mysqli_stmt_close($stmt_coords);
         } else {
             error_log("Chat API Erro (get_professor_contacts - coordenadores prepare): " . mysqli_error($conn));
+            $db_error_occurred_prof = true;
         }
 
-        if (empty($contacts) && mysqli_error($conn) && (!isset($stmt_alunos_prof) || !isset($stmt_outros_profs) || !isset($stmt_coords) ) ) {
-             error_log("Chat API: Erro DB em get_professor_contacts: " . mysqli_error($conn));
-             echo json_encode(['error' => 'Erro ao buscar contatos para o professor.']);
+        if ($db_error_occurred_prof) {
+             error_log("Chat API: Um ou mais erros de DB em get_professor_contacts para professor_id: " . $professor_id_session);
+             echo json_encode(['error' => 'Erro ao buscar contatos para o professor. Consulte o administrador.']);
         } else {
              echo json_encode($contacts);
         }
@@ -196,8 +238,8 @@ switch ($action) {
         $coordenador_id_session = $current_user_id;
         $contacts = [];
         $processed_user_ids_roles = [];
+        $db_error_occurred_coord = false;
 
-        // 1. Buscar todos os alunos
         $sql_all_alunos = "SELECT id, nome, foto_url, 'aluno' as role FROM alunos ORDER BY nome ASC";
         $stmt_all_alunos = mysqli_prepare($conn, $sql_all_alunos);
         if ($stmt_all_alunos) {
@@ -213,9 +255,9 @@ switch ($action) {
             mysqli_stmt_close($stmt_all_alunos);
         } else {
             error_log("Chat API Erro (get_coordenador_contacts - alunos): " . mysqli_error($conn));
+            $db_error_occurred_coord = true;
         }
 
-        // 2. Buscar todos os professores
         $sql_all_profs = "SELECT id, nome, foto_url, 'professor' as role FROM professores ORDER BY nome ASC";
         $stmt_all_profs = mysqli_prepare($conn, $sql_all_profs);
         if ($stmt_all_profs) {
@@ -231,9 +273,9 @@ switch ($action) {
             mysqli_stmt_close($stmt_all_profs);
         } else {
             error_log("Chat API Erro (get_coordenador_contacts - profs): " . mysqli_error($conn));
+            $db_error_occurred_coord = true;
         }
 
-        // 3. Buscar outros coordenadores (excluindo o próprio coordenador logado)
         $sql_outros_coords = "SELECT id, nome, foto_url, 'coordenador' as role FROM coordenadores WHERE id != ? ORDER BY nome ASC";
         $stmt_outros_coords = mysqli_prepare($conn, $sql_outros_coords);
         if ($stmt_outros_coords) {
@@ -250,16 +292,16 @@ switch ($action) {
             mysqli_stmt_close($stmt_outros_coords);
         } else {
             error_log("Chat API Erro (get_coordenador_contacts - outros coords): " . mysqli_error($conn));
+            $db_error_occurred_coord = true;
         }
         
-        if (empty($contacts) && mysqli_error($conn) && (!isset($stmt_all_alunos) || !isset($stmt_all_profs) || !isset($stmt_outros_coords) ) ) {
-             error_log("Chat API: Erro DB em get_coordenador_contacts: " . mysqli_error($conn));
-             echo json_encode(['error' => 'Erro ao buscar contatos para a coordenação.']);
+        if ($db_error_occurred_coord) {
+             error_log("Chat API: Um ou mais erros de DB em get_coordenador_contacts para coordenador_id: " . $coordenador_id_session);
+             echo json_encode(['error' => 'Erro ao buscar contatos para a coordenação. Consulte o administrador.']);
         } else {
              echo json_encode($contacts);
         }
         break;
-
 
     case 'get_messages':
         if (!isset($_GET['contact_id']) || !isset($_GET['contact_role'])) {
@@ -297,9 +339,13 @@ switch ($action) {
                     }
                 } else {
                     error_log("Chat API Erro (get_messages - get_result): " . mysqli_error($conn));
+                     echo json_encode(['error' => 'Erro ao processar resultado das mensagens.']); // Enviar erro específico
+                     exit;
                 }
             } else {
                 error_log("Chat API Erro (get_messages - execute): " . mysqli_stmt_error($stmt));
+                echo json_encode(['error' => 'Erro ao executar busca de mensagens.']); // Enviar erro específico
+                exit;
             }
             mysqli_stmt_close($stmt);
             

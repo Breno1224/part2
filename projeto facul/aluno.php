@@ -6,11 +6,11 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'aluno') {
     header("Location: index.html");
     exit();
 }
-// include 'db.php'; // O chat_api.php já incluirá db.php, se necessário para outras operações.
+// include 'db.php'; // O chat_api.php já incluirá db.php.
 
 $nome_aluno = $_SESSION['usuario_nome'];
 $aluno_id = $_SESSION['usuario_id']; 
-$turma_id_aluno = isset($_SESSION['turma_id']) ? intval($_SESSION['turma_id']) : 0; 
+$turma_id_aluno = isset($_SESSION['turma_id']) ? intval($_SESSION['turma_id']) : 0; // Essencial para o chat
 
 $currentPageIdentifier = 'inicio_noticias'; 
 $tema_global_usuario = isset($_SESSION['tema_usuario']) ? $_SESSION['tema_usuario'] : 'padrao';
@@ -113,7 +113,10 @@ $noticias_static = [
         #chatUserListUlAcad li img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
         #chatUserListUlAcad li .chat-user-name-acad { flex-grow: 1; font-size: 0.9em; }
         .chat-user-professor-acad .chat-user-name-acad { font-weight: bold; }
+        .chat-user-coordenador-acad .chat-user-name-acad { font-weight: bold; font-style: italic; } 
         .teacher-icon-acad { margin-left: 5px; color: var(--primary-color, #007bff); font-size: 0.9em; }
+        .student-icon-acad { margin-left: 5px; color: var(--accent-color, #6c757d); font-size: 0.9em; } 
+        .coord-icon-acad { margin-left: 5px; color: var(--info-color, #17a2b8); font-size: 0.9em; } 
         .chat-conversation-header-acad { padding: 8px 10px; display: flex; align-items: center; border-bottom: 1px solid var(--border-color-soft, #eee); background-color: var(--background-color-offset, #f9f9f9); gap: 10px; }
         #chatBackToListBtnAcad { background: none; border: none; font-size: 1.1rem; cursor: pointer; padding: 5px; color: var(--primary-color, #007bff); }
         .chat-conversation-photo-acad { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
@@ -273,18 +276,31 @@ $noticias_static = [
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         const currentUserId = <?php echo json_encode($aluno_id); ?>;
-        const currentUserTurmaId = <?php echo json_encode($turma_id_aluno); ?>; 
-        const defaultUserPhoto = 'img/alunos/default_avatar.png'; 
+        const currentUserSessionRole = <?php echo json_encode($_SESSION['role']); ?>; 
+        const currentUserTurmaIdForStudent = <?php echo json_encode($turma_id_aluno); ?>; 
+
+        let currentUserChatRole = '';
+        if (currentUserSessionRole === 'aluno') {
+            currentUserChatRole = 'aluno'; 
+        } else if (currentUserSessionRole === 'docente') {
+            currentUserChatRole = 'professor'; 
+        } else if (currentUserSessionRole === 'coordenacao') {
+            currentUserChatRole = 'coordenador';
+        } else {
+            console.warn("Chat: Papel do usuário não reconhecido:", currentUserSessionRole);
+        }
+        
+        const defaultUserPhoto = 'img/alunos/default_avatar.png';
+        const defaultProfessorPhoto = 'img/professores/default_avatar_prof.png'; 
+        const defaultCoordenadorPhoto = 'img/coordenadores/default_avatar.png';
 
         const chatWidget = document.getElementById('academicChatWidget');
         const chatHeader = document.getElementById('chatWidgetHeaderAcad');
-        const chatToggleBtn = document.getElementById('chatToggleBtnAcad'); 
+        const chatToggleBtn = document.getElementById('chatToggleBtnAcad');
         const chatBody = document.getElementById('chatWidgetBodyAcad');
-
         const userListScreen = document.getElementById('chatUserListScreenAcad');
         const searchUserInput = document.getElementById('chatSearchUserAcad');
         const userListUl = document.getElementById('chatUserListUlAcad');
-
         const conversationScreen = document.getElementById('chatConversationScreenAcad');
         const backToListBtn = document.getElementById('chatBackToListBtnAcad');
         const conversationUserPhoto = document.getElementById('chatConversationUserPhotoAcad');
@@ -293,19 +309,21 @@ $noticias_static = [
         const messageInput = document.getElementById('chatMessageInputAcad');
         const sendMessageBtn = document.getElementById('chatSendMessageBtnAcad');
 
-        let allTurmaUsers = []; 
+        let allContacts = []; 
         let currentConversationWith = null; 
         let isChatInitiallyLoaded = false;
 
         function toggleChat() {
+            if (!chatWidget) return; 
             const isCollapsed = chatWidget.classList.contains('chat-collapsed');
             if (isCollapsed) {
                 chatWidget.classList.remove('chat-collapsed');
                 chatWidget.classList.add('chat-expanded');
-                chatBody.style.display = 'flex';
-                chatToggleBtn.innerHTML = '<i class="fas fa-chevron-down"></i>';
-                if (!isChatInitiallyLoaded) { 
-                    fetchAndDisplayTurmaUsers();
+                if(chatBody) chatBody.style.display = 'flex';
+                if(chatToggleBtn) chatToggleBtn.innerHTML = '<i class="fas fa-chevron-down"></i>';
+                
+                if (!isChatInitiallyLoaded && currentUserChatRole) { 
+                    loadInitialContacts();
                     isChatInitiallyLoaded = true;
                 }
                 if (!currentConversationWith) { 
@@ -316,39 +334,56 @@ $noticias_static = [
             } else {
                 chatWidget.classList.add('chat-collapsed');
                 chatWidget.classList.remove('chat-expanded');
-                chatBody.style.display = 'none';
-                chatToggleBtn.innerHTML = '<i class="fas fa-chevron-up"></i>';
+                if(chatBody) chatBody.style.display = 'none';
+                if(chatToggleBtn) chatToggleBtn.innerHTML = '<i class="fas fa-chevron-up"></i>';
             }
         }
 
         function showUserListScreen() {
-            userListScreen.style.display = 'flex';
-            conversationScreen.style.display = 'none';
+            if(userListScreen) userListScreen.style.display = 'flex';
+            if(conversationScreen) conversationScreen.style.display = 'none';
         }
 
         function showConversationScreen(contact, shouldFetchMessages = true) {
             currentConversationWith = contact; 
-            userListScreen.style.display = 'none';
-            conversationScreen.style.display = 'flex';
-            conversationUserName.textContent = contact.nome;
-            conversationUserPhoto.src = contact.foto_url || defaultUserPhoto;
+            if(userListScreen) userListScreen.style.display = 'none';
+            if(conversationScreen) conversationScreen.style.display = 'flex';
+            if(conversationUserName) conversationUserName.textContent = contact.nome;
+            
+            let photoToUse = defaultUserPhoto;
+            if (contact.role === 'professor') photoToUse = defaultProfessorPhoto;
+            else if (contact.role === 'coordenador') photoToUse = defaultCoordenadorPhoto;
+            if (contact.foto_url) photoToUse = contact.foto_url;
+            if(conversationUserPhoto) conversationUserPhoto.src = photoToUse;
             
             if (shouldFetchMessages) {
-                messagesContainer.innerHTML = ''; 
-                fetchAndDisplayMessages(contact.id);
+                if(messagesContainer) messagesContainer.innerHTML = ''; 
+                fetchAndDisplayMessages(contact.id, contact.role);
             }
-            messageInput.focus();
+            if(messageInput) messageInput.focus();
         }
         
-        async function fetchAndDisplayTurmaUsers() {
-            if (currentUserTurmaId === 0) {
-                userListUl.innerHTML = '<li>Turma não definida.</li>';
+        async function loadInitialContacts() { 
+            let actionApi = '';
+            if (currentUserChatRole === 'aluno') { 
+                actionApi = 'get_turma_users';
+                if (currentUserTurmaIdForStudent === 0) {
+                    if(userListUl) userListUl.innerHTML = '<li>Turma não definida para carregar contatos.</li>';
+                    return;
+                }
+            } else if (currentUserChatRole === 'professor') {
+                actionApi = 'get_professor_contacts';
+            } else if (currentUserChatRole === 'coordenador') {
+                actionApi = 'get_coordenador_contacts'; 
+            } else {
+                if(userListUl) userListUl.innerHTML = '<li>Lista de contatos não disponível para este perfil.</li>';
                 return;
             }
-            userListUl.innerHTML = '<li><i class="fas fa-spinner fa-spin"></i> Carregando usuários...</li>';
+
+            if(userListUl) userListUl.innerHTML = '<li><i class="fas fa-spinner fa-spin"></i> Carregando contatos...</li>';
             
             try {
-                const response = await fetch(`chat_api.php?action=get_turma_users`);
+                const response = await fetch(`chat_api.php?action=${actionApi}`); 
                 if (!response.ok) {
                     const errorText = await response.text();
                     throw new Error(`HTTP error ${response.status}: ${errorText}`);
@@ -356,20 +391,21 @@ $noticias_static = [
                 const users = await response.json();
 
                 if (users.error) {
-                    console.error('API Erro (get_turma_users):', users.error);
-                    userListUl.innerHTML = `<li>Erro: ${users.error}</li>`;
+                    console.error('API Erro ('+actionApi+'):', users.error);
+                    if(userListUl) userListUl.innerHTML = `<li>Erro: ${users.error}</li>`;
                     return;
                 }
-                allTurmaUsers = users;
-                renderUserList(allTurmaUsers);
+                allContacts = users; 
+                renderUserList(allContacts);
 
             } catch (error) {
-                console.error('Falha ao buscar usuários:', error);
-                userListUl.innerHTML = '<li>Falha ao carregar contatos.</li>';
+                console.error('Falha ao buscar contatos ('+actionApi+'):', error);
+                if(userListUl) userListUl.innerHTML = '<li>Falha ao carregar contatos.</li>';
             }
         }
 
         function renderUserList(usersToRender) {
+            if (!userListUl) return;
             userListUl.innerHTML = '';
             if (!usersToRender || usersToRender.length === 0) {
                 userListUl.innerHTML = '<li>Nenhum contato encontrado.</li>';
@@ -378,9 +414,15 @@ $noticias_static = [
             usersToRender.forEach(user => {
                 const li = document.createElement('li');
                 li.dataset.userid = user.id;
+                li.dataset.userrole = user.role;
                 
+                let photoToUseInList = defaultUserPhoto;
+                if (user.role === 'professor') photoToUseInList = defaultProfessorPhoto;
+                else if (user.role === 'coordenador') photoToUseInList = defaultCoordenadorPhoto;
+                if (user.foto_url) photoToUseInList = user.foto_url;
+
                 const img = document.createElement('img');
-                img.src = user.foto_url || defaultUserPhoto;
+                img.src = photoToUseInList;
                 img.alt = `Foto de ${user.nome}`;
                 li.appendChild(img);
 
@@ -394,6 +436,13 @@ $noticias_static = [
                     const teacherIcon = document.createElement('i');
                     teacherIcon.className = 'fas fa-chalkboard-teacher teacher-icon-acad';
                     nameSpan.appendChild(teacherIcon);
+                } else if (user.role === 'aluno') {
+                    li.classList.add('chat-user-aluno-acad');
+                } else if (user.role === 'coordenador') {
+                    li.classList.add('chat-user-coordenador-acad'); 
+                    const coordIcon = document.createElement('i'); 
+                    coordIcon.className = 'fas fa-user-tie coord-icon-acad'; 
+                    nameSpan.appendChild(coordIcon);
                 }
                 
                 li.addEventListener('click', () => {
@@ -403,12 +452,15 @@ $noticias_static = [
             });
         }
 
-        async function fetchAndDisplayMessages(contactId) {
+        async function fetchAndDisplayMessages(contactId, contactRole) {
+            if(!messagesContainer) return;
             messagesContainer.innerHTML = '<p style="text-align:center;font-size:0.8em;"><i class="fas fa-spinner fa-spin"></i> Carregando...</p>';
+            console.log("fetchAndDisplayMessages - Enviando para API:", { action: 'get_messages', contact_id: contactId, contact_role: contactRole, current_user_id: currentUserId, current_user_role: currentUserChatRole });
             try {
-                const response = await fetch(`chat_api.php?action=get_messages&contact_id=${contactId}`);
+                const response = await fetch(`chat_api.php?action=get_messages&contact_id=${contactId}&contact_role=${encodeURIComponent(contactRole)}`);
                 if (!response.ok) {
-                    const errorText = await response.text();
+                    const errorText = await response.text(); 
+                    console.error("fetchAndDisplayMessages - Erro HTTP:", response.status, errorText);
                     throw new Error(`HTTP error ${response.status}: ${errorText}`);
                 }
                 const messages = await response.json();
@@ -424,26 +476,31 @@ $noticias_static = [
                     messagesContainer.innerHTML = '<p style="text-align:center;font-size:0.8em;color:#888;">Sem mensagens.</p>';
                 } else {
                     messages.forEach(msg => {
-                        appendMessageToChat(msg.message_text, parseInt(msg.sender_id) === currentUserId ? 'sent-acad' : 'received-acad');
+                        const messageType = (parseInt(msg.sender_id) === currentUserId && msg.sender_role === currentUserChatRole) ? 'sent-acad' : 'received-acad';
+                        appendMessageToChat(msg.message_text, messageType);
                     });
                 }
             } catch (error) {
-                console.error('Falha ao buscar mensagens:', error);
+                console.error('Falha ao buscar mensagens (catch):', error); 
                 messagesContainer.innerHTML = '<p style="text-align:center;color:red;">Falha ao carregar.</p>';
             }
         }
 
         function appendMessageToChat(text, type) {
+            if(!messagesContainer) return;
             const messageDiv = document.createElement('div');
             messageDiv.classList.add('message-acad', type);
             messageDiv.textContent = text; 
             messagesContainer.appendChild(messageDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            if (messagesContainer.scrollHeight > messagesContainer.clientHeight) {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
         }
 
         async function handleSendMessage() {
+            if(!messageInput || !currentConversationWith) return;
             const text = messageInput.value.trim();
-            if (text === '' || !currentConversationWith) return;
+            if (text === '') return;
 
             appendMessageToChat(text, 'sent-acad');
             const messageTextForApi = text; 
@@ -458,6 +515,7 @@ $noticias_static = [
                     body: JSON.stringify({
                         action: 'send_message',
                         receiver_id: currentConversationWith.id,
+                        receiver_role: currentConversationWith.role,
                         text: messageTextForApi 
                     })
                 });
@@ -479,38 +537,38 @@ $noticias_static = [
                 appendMessageToChat(`Falha na rede.`, 'error-acad');
             }
         }
+        
+        if(chatHeader) { 
+            chatHeader.addEventListener('click', (event) => {
+                if (event.target.closest('#chatToggleBtnAcad') || event.target.id === 'chatToggleBtnAcad') {
+                    toggleChat();
+                } else if (event.target === chatHeader || chatHeader.contains(event.target)) {
+                    toggleChat();
+                }
+            });
+        }
 
-        chatHeader.addEventListener('click', (event) => {
-            if (event.target.closest('#chatToggleBtnAcad') || event.target.id === 'chatToggleBtnAcad') {
-                 toggleChat();
-            } else if (event.target === chatHeader || chatHeader.contains(event.target)) {
-                toggleChat();
-            }
-        });
-
-        backToListBtn.addEventListener('click', () => {
-            showUserListScreen(); 
-        });
-
-        searchUserInput.addEventListener('input', function() {
+        if(backToListBtn) backToListBtn.addEventListener('click', showUserListScreen); 
+        if(searchUserInput) searchUserInput.addEventListener('input', function() {
             const searchTerm = this.value.toLowerCase();
-            const filteredUsers = allTurmaUsers.filter(user => 
+            const filteredUsers = allContacts.filter(user => // Alterado de allTurmaUsers para allContacts
                 user.nome.toLowerCase().includes(searchTerm)
             );
             renderUserList(filteredUsers);
         });
-
-        sendMessageBtn.addEventListener('click', handleSendMessage);
-        messageInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSendMessage();
-            }
-        });
-        messageInput.addEventListener('input', function() { 
-            this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
-        });
+        if(sendMessageBtn) sendMessageBtn.addEventListener('click', handleSendMessage);
+        if(messageInput) {
+            messageInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                }
+            });
+            messageInput.addEventListener('input', function() { 
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
+        }
     });
     </script>
 </body>
