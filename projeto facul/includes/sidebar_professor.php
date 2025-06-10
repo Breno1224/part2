@@ -59,6 +59,11 @@ $isPerfilPageActive = (isset($currentPageIdentifier) && $currentPageIdentifier =
         <i class="fas fa-file-signature"></i> Relatórios de Aula
     </a>
 </li>
+ <li>
+    <a href="professor_lancar_tarefa.php" <?php if (isset($currentPageIdentifier) && $currentPageIdentifier === 'lancar_tarefas') echo 'class="active"'; ?>>
+     <i class="fa-solid fa-list-check"></i> lançar tarefas
+    </a>
+</li>
     <li>
         <a href="<?php echo $linkMeuPerfil; ?>" <?php if ($isPerfilPageActive) echo 'class="active"'; ?>>
             <i class="fas fa-user"></i> Meu Perfil
