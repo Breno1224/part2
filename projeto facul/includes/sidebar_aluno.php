@@ -39,9 +39,14 @@ $linkMeuPerfilAluno = "perfil_aluno.php";
     </li>
       <li>
         <a href="tarefas_aluno.php" <?php if (isset($currentPageIdentifier) && $currentPageIdentifier === 'tarefas_aluno') echo 'class="active"'; ?>>
-            <i class="fas fa-user-circle"></i> tarefas
+         <i class="fa-solid fa-list-check"></i> tarefas
         </a>
     </li>
+    <li>
+    <a href="desempenho_aluno.php" class="<?php if($currentPageIdentifier == 'desempenho_aluno') echo 'active'; ?>">
+        <i class="fas fa-chart-line"></i> Meu Desempenho
+    </a>
+</li>
     <li>
         <a href="<?php echo $linkMeuPerfilAluno; ?>" <?php if (isset($currentPageIdentifier) && $currentPageIdentifier === 'meu_perfil_aluno') echo 'class="active"'; ?>>
             <i class="fas fa-user-circle"></i> Meu Perfil

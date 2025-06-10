@@ -1,22 +1,17 @@
 <?php
 session_start(); // GARANTIR que está no topo absoluto
-// Verifica se o usuário é um docente logado
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'docente') {
     header("Location: index.html");
     exit();
 }
-include 'db.php'; // Conexão com o banco
+include 'db.php';
 
 $nome_professor = $_SESSION['usuario_nome'];
-$professor_id = $_SESSION['usuario_id']; // Essencial para o chat
-// $_SESSION['role'] é 'docente', será usado no JS do chat
+$professor_id = $_SESSION['usuario_id'];
 
-$currentPageIdentifier = 'frequencia'; // Para a sidebar
-
-// PEGAR TEMA DA SESSÃO
+$currentPageIdentifier = 'frequencia'; 
 $tema_global_usuario = isset($_SESSION['tema_usuario']) ? $_SESSION['tema_usuario'] : 'padrao';
 
-// (PHP para buscar turmas do professor - como no seu código)
 $turmas_professor = [];
 $sql_turmas = "SELECT DISTINCT t.id, t.nome_turma FROM turmas t JOIN professores_turmas_disciplinas ptd ON t.id = ptd.turma_id WHERE ptd.professor_id = ? ORDER BY t.nome_turma";
 $stmt_turmas_fetch = mysqli_prepare($conn, $sql_turmas);
@@ -28,10 +23,7 @@ if ($stmt_turmas_fetch) {
         $turmas_professor[] = $row;
     }
     mysqli_stmt_close($stmt_turmas_fetch);
-} else {
-    error_log("Erro ao buscar turmas do professor (frequencia_professor.php): " . mysqli_error($conn));
 }
-
 
 $turma_selecionada_id = isset($_GET['turma_id']) ? intval($_GET['turma_id']) : null;
 $data_aula_selecionada = isset($_GET['data_aula']) ? $_GET['data_aula'] : date('Y-m-d');
@@ -39,7 +31,7 @@ $nome_turma_selecionada = "";
 $alunos_com_frequencia = [];
 $professor_tem_acesso_turma = false; 
 
-if ($turma_selecionada_id && !empty($data_aula_selecionada)) { // Adicionada verificação para data_aula_selecionada
+if ($turma_selecionada_id && !empty($data_aula_selecionada)) {
     foreach ($turmas_professor as $turma_p) {
         if ($turma_p['id'] == $turma_selecionada_id) {
             $professor_tem_acesso_turma = true;
@@ -62,13 +54,11 @@ if ($turma_selecionada_id && !empty($data_aula_selecionada)) { // Adicionada ver
             $result_alunos_frequencia = mysqli_stmt_get_result($stmt_alunos);
             while ($row = mysqli_fetch_assoc($result_alunos_frequencia)) {
                 if (is_null($row['status'])) {
-                    $row['status'] = 'P'; // Assume Presente como padrão se não houver registro
+                    $row['status'] = 'P';
                 }
                 $alunos_com_frequencia[] = $row;
             }
             mysqli_stmt_close($stmt_alunos);
-        } else {
-            error_log("Erro ao buscar alunos com frequência (frequencia_professor.php): " . mysqli_error($conn));
         }
     } else {
         $turma_selecionada_id = null; 
@@ -91,15 +81,19 @@ if ($turma_selecionada_id && !empty($data_aula_selecionada)) { // Adicionada ver
         <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <?php endif; ?>
     <style>
-        /* Estilos da página frequencia_professor.php */
+        .page-title { text-align: center; font-size: 1.8rem; margin-bottom: 1.5rem; }
         .dashboard-section { padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; }
         .dashboard-section h3 { font-size: 1.4rem; margin-bottom: 1rem; padding-bottom: 0.5rem; }
+        .form-inline { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end; }
         .form-inline label { margin-right: 0.5rem; font-weight:bold; }
         .form-inline select, .form-inline input[type="date"] { padding: 0.5rem; border-radius: 4px; margin-right: 1rem; }
         .form-inline button { padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer; }
+        
         .chamada-table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; }
         .chamada-table th, .chamada-table td { padding: 0.75rem; text-align: left; vertical-align: middle; }
-        .chamada-table .aluno-nome-clickable { cursor: pointer; font-weight: 500; }
+        .chamada-table .aluno-nome-clickable { cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 10px; }
+        .chamada-table .aluno-nome-clickable img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
+        .chamada-table .aluno-nome-clickable:hover { text-decoration: underline; color: var(--primary-color); }
         .status-buttons { display: flex; gap: 5px; }
         .status-buttons input[type="radio"] { display: none; }
         .status-buttons label { padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: bold; transition: background-color 0.2s, color 0.2s; min-width: 35px; text-align: center; }
@@ -108,22 +102,19 @@ if ($turma_selecionada_id && !empty($data_aula_selecionada)) { // Adicionada ver
         .status-buttons .status-F input[type="radio"]:checked + label { background-color: #dc3545; } 
         .status-buttons .status-A input[type="radio"]:checked + label { background-color: #ffc107; color: #333 !important; } 
         .status-buttons .status-FJ input[type="radio"]:checked + label { background-color: #17a2b8; } 
-        .status-buttons .status-P label:hover { background-color: #d4edda; }
-        .status-buttons .status-F label:hover { background-color: #f8d7da; }
-        .status-buttons .status-A label:hover { background-color: #fff3cd; }
-        .status-buttons .status-FJ label:hover { background-color: #d1ecf1; }
         .chamada-table input[type="text"].observacao-input { width: 95%; padding: 0.3rem; font-size:0.85rem; border-radius: 3px; }
         .btn-salvar-chamada { display: block; width: auto; padding: 0.75rem 1.5rem; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; margin-top: 1.5rem; }
-        .status-message { padding: 1rem; margin-bottom: 1rem; border-radius: 4px; }
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
-        .modal-content { margin: 10% auto; padding: 25px; border: 1px solid #888; width: 80%; max-width: 500px; border-radius: 8px; position: relative; }
-        .modal-close-button { color: #aaa; float: right; font-size: 28px; font-weight: bold; }
-        .modal-close-button:hover, .modal-close-button:focus { color: black; text-decoration: none; cursor: pointer; }
-        #modalAlunoNome { margin-top: 0; }
-        #modalAlunoStats p { font-size: 1.1rem; line-height: 1.6; }
+        .status-message { padding: 1rem; margin-bottom: 1rem; border-radius: 4px; text-align:center; }
+        .modal { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; }
+        .modal-content { margin: auto; padding: 25px; border: 1px solid var(--border-color, #888); width: 90%; max-width: 500px; border-radius: 8px; position: relative; animation: slide-down 0.3s ease-out; }
+        @keyframes slide-down { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-close-button { color: var(--text-color-muted, #aaa); position: absolute; top: 10px; right: 15px; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .modal-close-button:hover, .modal-close-button:focus { color: var(--text-color, black); }
+        #modalAlunoNome { margin-top: 0; font-size: 1.4rem; border-bottom: 1px solid var(--border-color-soft); padding-bottom: 0.5rem; margin-bottom: 1rem;}
+        #modalAlunoStats p { font-size: 1rem; line-height: 1.7; }
         #modalAlunoStats .highlight { font-weight: bold; }
 
-        /* --- INÍCIO CSS NOVO CHAT ACADÊMICO --- */
+        /* CSS do Chat */
         .chat-widget-acad { position: fixed; bottom: 0; right: 20px; width: 320px; border-top-left-radius: 10px; border-top-right-radius: 10px; box-shadow: 0 -2px 10px rgba(0,0,0,0.15); z-index: 1000; overflow: hidden; transition: height 0.3s ease-in-out; }
         .chat-widget-acad.chat-collapsed { height: 45px; }
         .chat-widget-acad.chat-expanded { height: 450px; }
@@ -141,8 +132,10 @@ if ($turma_selecionada_id && !empty($data_aula_selecionada)) { // Adicionada ver
         #chatUserListUlAcad li img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
         #chatUserListUlAcad li .chat-user-name-acad { flex-grow: 1; font-size: 0.9em; }
         .chat-user-professor-acad .chat-user-name-acad { font-weight: bold; }
+        .chat-user-coordenador-acad .chat-user-name-acad { font-weight: bold; font-style: italic; }
         .teacher-icon-acad { margin-left: 5px; color: var(--primary-color, #007bff); font-size: 0.9em; }
         .student-icon-acad { margin-left: 5px; color: var(--accent-color, #6c757d); font-size: 0.9em; } 
+        .coord-icon-acad { margin-left: 5px; color: var(--info-color, #17a2b8); font-size: 0.9em; } 
         .chat-conversation-header-acad { padding: 8px 10px; display: flex; align-items: center; border-bottom: 1px solid var(--border-color-soft, #eee); background-color: var(--background-color-offset, #f9f9f9); gap: 10px; }
         #chatBackToListBtnAcad { background: none; border: none; font-size: 1.1rem; cursor: pointer; padding: 5px; color: var(--primary-color, #007bff); }
         .chat-conversation-photo-acad { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
@@ -156,13 +149,12 @@ if ($turma_selecionada_id && !empty($data_aula_selecionada)) { // Adicionada ver
         #chatMessageInputAcad { flex-grow: 1; padding: 8px 12px; border: 1px solid var(--border-color, #ddd); border-radius: 20px; resize: none; font-size: 0.9em; min-height: 20px; max-height: 80px; overflow-y: auto; }
         #chatSendMessageBtnAcad { background: var(--primary-color, #007bff); color: var(--button-text-color, white); border: none; border-radius: 50%; width: 38px; height: 38px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
         #chatSendMessageBtnAcad:hover { background: var(--primary-color-dark, #0056b3); }
-        /* --- FIM CSS NOVO CHAT ACADÊMICO --- */
     </style>
 </head>
 <body class="theme-<?php echo htmlspecialchars($tema_global_usuario); ?>"> 
     <header>
         <button id="menu-toggle" class="menu-btn"><i class="fas fa-bars"></i></button>
-        <h1>ACADMIX - Registro de Frequência (Prof. <?php echo htmlspecialchars($nome_professor); ?>)</h1>
+        <h1>ACADMIX - Registro de Frequência</h1>
         <form action="logout.php" method="post" style="display: inline;">
             <button type="submit" id="logoutBtnHeader" class="button button-logout"><i class="fas fa-sign-out-alt"></i> Sair</button>
         </form>
@@ -174,8 +166,9 @@ if ($turma_selecionada_id && !empty($data_aula_selecionada)) { // Adicionada ver
         </nav>
 
         <main class="main-content">
+            <h2 class="page-title">Registro de Frequência</h2>
             <section class="dashboard-section card">
-                <h3>Selecionar Turma e Data para Chamada</h3>
+                <h3>Selecionar Turma e Data</h3>
                 <form method="GET" action="frequencia_professor.php" class="form-inline">
                      <label for="turma_id_select">Turma:</label>
                     <select name="turma_id" id="turma_id_select" required class="input-field">
@@ -206,48 +199,52 @@ if ($turma_selecionada_id && !empty($data_aula_selecionada)) { // Adicionada ver
                 <form action="salvar_frequencia.php" method="POST">
                     <input type="hidden" name="turma_id" value="<?php echo $turma_selecionada_id; ?>">
                     <input type="hidden" name="data_aula" value="<?php echo $data_aula_selecionada; ?>">
-                    <table class="chamada-table table"> <thead>
-                            <tr>
-                                <th>Aluno</th>
-                                <th width="35%">Status (P, F, A, FJ)</th>
-                                <th width="35%">Observação</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($alunos_com_frequencia as $aluno): ?>
-                            <tr>
-                                <td>
-                                    <span class="aluno-nome-clickable" data-aluno-id="<?php echo $aluno['aluno_id']; ?>" data-aluno-nome="<?php echo htmlspecialchars($aluno['aluno_nome']); ?>" data-turma-id="<?php echo $turma_selecionada_id; ?>">
-                                        <?php echo htmlspecialchars($aluno['aluno_nome']); ?>
-                                    </span>
-                                </td>
-                                <td class="status-buttons">
-                                    <?php $aluno_id_input = $aluno['aluno_id']; ?>
-                                    <div class="status-P">
-                                        <input type="radio" id="p_<?php echo $aluno_id_input; ?>_<?php echo $turma_selecionada_id; ?>_<?php echo str_replace('-', '', $data_aula_selecionada);?>" name="frequencia[<?php echo $aluno_id_input; ?>][status]" value="P" <?php echo ($aluno['status'] == 'P') ? 'checked' : ''; ?>>
-                                        <label for="p_<?php echo $aluno_id_input; ?>_<?php echo $turma_selecionada_id; ?>_<?php echo str_replace('-', '', $data_aula_selecionada);?>">P</label>
-                                    </div>
-                                    <div class="status-F">
-                                        <input type="radio" id="f_<?php echo $aluno_id_input; ?>_<?php echo $turma_selecionada_id; ?>_<?php echo str_replace('-', '', $data_aula_selecionada);?>" name="frequencia[<?php echo $aluno_id_input; ?>][status]" value="F" <?php echo ($aluno['status'] == 'F') ? 'checked' : ''; ?>>
-                                        <label for="f_<?php echo $aluno_id_input; ?>_<?php echo $turma_selecionada_id; ?>_<?php echo str_replace('-', '', $data_aula_selecionada);?>">F</label>
-                                    </div>
-                                    <div class="status-A">
-                                        <input type="radio" id="a_<?php echo $aluno_id_input; ?>_<?php echo $turma_selecionada_id; ?>_<?php echo str_replace('-', '', $data_aula_selecionada);?>" name="frequencia[<?php echo $aluno_id_input; ?>][status]" value="A" <?php echo ($aluno['status'] == 'A') ? 'checked' : ''; ?>>
-                                        <label for="a_<?php echo $aluno_id_input; ?>_<?php echo $turma_selecionada_id; ?>_<?php echo str_replace('-', '', $data_aula_selecionada);?>">A</label>
-                                    </div>
-                                    <div class="status-FJ">
-                                        <input type="radio" id="fj_<?php echo $aluno_id_input; ?>_<?php echo $turma_selecionada_id; ?>_<?php echo str_replace('-', '', $data_aula_selecionada);?>" name="frequencia[<?php echo $aluno_id_input; ?>][status]" value="FJ" <?php echo ($aluno['status'] == 'FJ') ? 'checked' : ''; ?>>
-                                        <label for="fj_<?php echo $aluno_id_input; ?>_<?php echo $turma_selecionada_id; ?>_<?php echo str_replace('-', '', $data_aula_selecionada);?>">FJ</label>
-                                    </div>
-                                </td>
-                                <td>
-                                    <input type="text" name="frequencia[<?php echo $aluno_id_input; ?>][observacao]" class="observacao-input input-field" value="<?php echo htmlspecialchars($aluno['observacao'] ?? ''); ?>">
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                    <button type="submit" class="btn-salvar-chamada button"><i class="fas fa-save"></i> Salvar Chamada</button>
+                    <div style="overflow-x:auto;">
+                        <table class="chamada-table table"> 
+                            <thead>
+                                <tr>
+                                    <th>Aluno</th>
+                                    <th width="35%">Status (P, F, A, FJ)</th>
+                                    <th width="35%">Observação</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($alunos_com_frequencia as $aluno): ?>
+                                <tr>
+                                    <td>
+                                        <span class="aluno-nome-clickable" data-aluno-id="<?php echo $aluno['aluno_id']; ?>" data-aluno-nome="<?php echo htmlspecialchars($aluno['aluno_nome']); ?>" data-turma-id="<?php echo $turma_selecionada_id; ?>">
+                                            <img src="<?php echo htmlspecialchars(!empty($aluno['foto_url']) ? $aluno['foto_url'] : 'img/alunos/default_avatar.png'); ?>" alt="Foto" onerror="this.onerror=null; this.src='img/alunos/default_avatar.png';">
+                                            <span><?php echo htmlspecialchars($aluno['aluno_nome']); ?></span>
+                                        </span>
+                                    </td>
+                                    <td class="status-buttons">
+                                        <?php $aluno_id_input = $aluno['aluno_id']; ?>
+                                        <div class="status-P">
+                                            <input type="radio" id="p_<?php echo $aluno_id_input; ?>_<?php echo $turma_selecionada_id; ?>_<?php echo str_replace('-', '', $data_aula_selecionada);?>" name="frequencia[<?php echo $aluno_id_input; ?>][status]" value="P" <?php echo ($aluno['status'] == 'P') ? 'checked' : ''; ?>>
+                                            <label for="p_<?php echo $aluno_id_input; ?>_<?php echo $turma_selecionada_id; ?>_<?php echo str_replace('-', '', $data_aula_selecionada);?>">P</label>
+                                        </div>
+                                        <div class="status-F">
+                                            <input type="radio" id="f_<?php echo $aluno_id_input; ?>_<?php echo $turma_selecionada_id; ?>_<?php echo str_replace('-', '', $data_aula_selecionada);?>" name="frequencia[<?php echo $aluno_id_input; ?>][status]" value="F" <?php echo ($aluno['status'] == 'F') ? 'checked' : ''; ?>>
+                                            <label for="f_<?php echo $aluno_id_input; ?>_<?php echo $turma_selecionada_id; ?>_<?php echo str_replace('-', '', $data_aula_selecionada);?>">F</label>
+                                        </div>
+                                        <div class="status-A">
+                                            <input type="radio" id="a_<?php echo $aluno_id_input; ?>_<?php echo $turma_selecionada_id; ?>_<?php echo str_replace('-', '', $data_aula_selecionada);?>" name="frequencia[<?php echo $aluno_id_input; ?>][status]" value="A" <?php echo ($aluno['status'] == 'A') ? 'checked' : ''; ?>>
+                                            <label for="a_<?php echo $aluno_id_input; ?>_<?php echo $turma_selecionada_id; ?>_<?php echo str_replace('-', '', $data_aula_selecionada);?>">A</label>
+                                        </div>
+                                        <div class="status-FJ">
+                                            <input type="radio" id="fj_<?php echo $aluno_id_input; ?>_<?php echo $turma_selecionada_id; ?>_<?php echo str_replace('-', '', $data_aula_selecionada);?>" name="frequencia[<?php echo $aluno_id_input; ?>][status]" value="FJ" <?php echo ($aluno['status'] == 'FJ') ? 'checked' : ''; ?>>
+                                            <label for="fj_<?php echo $aluno_id_input; ?>_<?php echo $turma_selecionada_id; ?>_<?php echo str_replace('-', '', $data_aula_selecionada);?>">FJ</label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input type="text" name="frequencia[<?php echo $aluno_id_input; ?>][observacao]" class="observacao-input input-field" value="<?php echo htmlspecialchars($aluno['observacao'] ?? ''); ?>">
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    <button type="submit" class="btn-salvar-chamada button button-primary"><i class="fas fa-save"></i> Salvar Chamada</button>
                 </form>
                 <?php else: ?>
                     <p class="no-data-message info-message">Nenhum aluno encontrado nesta turma para a data selecionada.</p>
@@ -258,7 +255,8 @@ if ($turma_selecionada_id && !empty($data_aula_selecionada)) { // Adicionada ver
     </div>
 
     <div id="frequenciaModal" class="modal">
-        <div class="modal-content card"> <span class="modal-close-button" onclick="document.getElementById('frequenciaModal').style.display='none'">&times;</span>
+        <div class="modal-content card">
+            <span class="modal-close-button">&times;</span>
             <h3 id="modalAlunoNome"></h3>
             <div id="modalAlunoStats"><p>Carregando estatísticas...</p></div>
         </div>
@@ -270,25 +268,7 @@ if ($turma_selecionada_id && !empty($data_aula_selecionada)) { // Adicionada ver
             <button id="chatToggleBtnAcad" class="chat-toggle-btn-acad" aria-label="Abrir ou fechar chat"><i class="fas fa-chevron-up"></i></button>
         </div>
         <div id="chatWidgetBodyAcad" class="chat-body-acad" style="display: none;">
-            <div id="chatUserListScreenAcad">
-                <div class="chat-search-container-acad">
-                    <input type="text" id="chatSearchUserAcad" placeholder="Pesquisar Alunos/Professores...">
-                </div>
-                <ul id="chatUserListUlAcad"></ul>
             </div>
-            <div id="chatConversationScreenAcad" style="display: none;">
-                <div class="chat-conversation-header-acad">
-                    <button id="chatBackToListBtnAcad" aria-label="Voltar para lista de contatos"><i class="fas fa-arrow-left"></i></button>
-                    <img id="chatConversationUserPhotoAcad" src="img/alunos/default_avatar.png" alt="Foto do Contato" class="chat-conversation-photo-acad">
-                    <span id="chatConversationUserNameAcad">Nome do Contato</span>
-                </div>
-                <div id="chatMessagesContainerAcad"></div>
-                <div class="chat-message-input-area-acad">
-                    <textarea id="chatMessageInputAcad" placeholder="Digite sua mensagem..." rows="1"></textarea>
-                    <button id="chatSendMessageBtnAcad" aria-label="Enviar mensagem"><i class="fas fa-paper-plane"></i></button>
-                </div>
-            </div>
-        </div>
     </div>
 
     <script>
@@ -296,7 +276,6 @@ if ($turma_selecionada_id && !empty($data_aula_selecionada)) { // Adicionada ver
         const menuToggleButtonGlobal = document.getElementById('menu-toggle');
         const sidebarElementGlobal = document.getElementById('sidebar');    
         const pageContainerGlobal = document.getElementById('pageContainer'); 
-
         if (menuToggleButtonGlobal && sidebarElementGlobal && pageContainerGlobal) {
             menuToggleButtonGlobal.addEventListener('click', function () {
                 sidebarElementGlobal.classList.toggle('hidden'); 
@@ -304,52 +283,77 @@ if ($turma_selecionada_id && !empty($data_aula_selecionada)) { // Adicionada ver
             });
         }
 
-        // Script para o Modal de Frequência do Aluno (existente)
-        const modal = document.getElementById('frequenciaModal');
-        document.querySelectorAll('.aluno-nome-clickable').forEach(item => {
-            item.addEventListener('click', function() {
-                const alunoId = this.dataset.alunoId;
-                const alunoNome = this.dataset.alunoNome;
-                const turmaId = this.dataset.turmaId; // Adicionado para o contexto do AJAX
-                
-                document.getElementById('modalAlunoNome').textContent = "Estatísticas de Frequência: " + alunoNome;
-                document.getElementById('modalAlunoStats').innerHTML = "<p>Buscando dados...</p>";
-                modal.style.display = "block";
+        // --- NOVO SCRIPT PARA O MODAL DE ESTATÍSTICAS ---
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('frequenciaModal');
+            if (!modal) return; // Se o modal não existe na página, não faz nada
+            
+            const modalCloseButton = modal.querySelector('.modal-close-button');
+            const modalAlunoNomeEl = document.getElementById('modalAlunoNome');
+            const modalAlunoStatsEl = document.getElementById('modalAlunoStats');
 
-                // AJAX para buscar estatísticas
-                fetch(`ajax_busca_stats_frequencia.php?aluno_id=${alunoId}&turma_id=${turmaId}`)
-                .then(response => response.json())
-                .then(data => {
-                    if(data.error){
-                        document.getElementById('modalAlunoStats').innerHTML = `<p style="color:red;">${data.error}</p>`;
-                    } else {
-                        let statsHtml = `<p><span class="highlight">Total de Aulas Registradas:</span> ${data.total_aulas || 0}</p>`;
-                        statsHtml += `<p><span class="highlight">Presenças (P):</span> ${data.presencas || 0}</p>`;
-                        statsHtml += `<p><span class="highlight">Faltas (F):</span> ${data.faltas || 0}</p>`;
-                        statsHtml += `<p><span class="highlight">Atestados (A):</span> ${data.atestados || 0}</p>`;
-                        statsHtml += `<p><span class="highlight">Faltas Justificadas (FJ):</span> ${data.faltas_justificadas || 0}</p>`;
-                        let percentualPresenca = data.total_aulas > 0 ? ((data.presencas / (data.total_aulas - data.atestados - data.faltas_justificadas)) * 100) : 0;
-                         if ( (data.total_aulas - data.atestados - data.faltas_justificadas) <=0 ) percentualPresenca = data.presencas > 0 ? 100 : 0; // Evita divisão por zero se só tiver atestado/FJ
-
-                        statsHtml += `<p><span class="highlight">Percentual de Presença Efetiva:</span> ${percentualPresenca.toFixed(1)}%</p>`;
-                        document.getElementById('modalAlunoStats').innerHTML = statsHtml;
+            document.querySelectorAll('.aluno-nome-clickable').forEach(item => {
+                item.addEventListener('click', function() {
+                    const alunoId = this.dataset.alunoId;
+                    const alunoNome = this.dataset.alunoNome;
+                    const turmaId = this.dataset.turmaId; 
+                    
+                    if (!alunoId || !turmaId) {
+                        console.error("Dados do aluno ou turma faltando no elemento clicado.");
+                        return;
                     }
-                })
-                .catch(error => {
-                    console.error('Erro ao buscar estatísticas:', error);
-                    document.getElementById('modalAlunoStats').innerHTML = "<p style='color:red;'>Erro ao carregar dados.</p>";
+                    
+                    modalAlunoNomeEl.textContent = "Estatísticas de: " + alunoNome;
+                    modalAlunoStatsEl.innerHTML = "<p>Buscando dados...</p>";
+                    modal.style.display = "flex"; // Usar flex para centralizar
+
+                    // AJAX para buscar estatísticas
+                    fetch(`ajax_busca_stats_frequencia.php?aluno_id=${alunoId}&turma_id=${turmaId}`)
+                    .then(response => {
+                        if (!response.ok) { throw new Error('Erro de rede ou servidor: ' + response.status); }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if(data.error){
+                            modalAlunoStatsEl.innerHTML = `<p class="error-message">${data.error}</p>`;
+                        } else {
+                            let totalAulasValidas = data.total_aulas - data.atestados - data.faltas_justificadas;
+                            if (totalAulasValidas < 0) totalAulasValidas = 0; // Não pode ser negativo
+
+                            let percentualPresenca = 0;
+                            if (totalAulasValidas > 0) {
+                                percentualPresenca = (data.presencas / totalAulasValidas) * 100;
+                            } else if (data.presencas > 0) {
+                                // Caso especial: só tem presença e atestado/FJ. Considerar 100%
+                                percentualPresenca = 100;
+                            }
+
+                            let statsHtml = `<p><span class="highlight">Total de Aulas Registradas:</span> ${data.total_aulas || 0}</p>`;
+                            statsHtml += `<p><span class="highlight">Presenças (P):</span> ${data.presencas || 0}</p>`;
+                            statsHtml += `<p><span class="highlight">Faltas (F):</span> ${data.faltas || 0}</p>`;
+                            statsHtml += `<p><span class="highlight">Atestados (A):</span> ${data.atestados || 0}</p>`;
+                            statsHtml += `<p><span class="highlight">Faltas Justificadas (FJ):</span> ${data.faltas_justificadas || 0}</p><hr>`;
+                            statsHtml += `<p><span class="highlight">Percentual de Presença (sobre aulas válidas):</span> ${percentualPresenca.toFixed(1)}%</p>`;
+                            modalAlunoStatsEl.innerHTML = statsHtml;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erro ao buscar estatísticas:', error);
+                        modalAlunoStatsEl.innerHTML = "<p class='error-message'>Erro de comunicação ao carregar dados.</p>";
+                    });
                 });
             });
-        });
-        if (modal) { // Garante que o modal existe antes de adicionar o event listener
-            const closeButton = modal.querySelector('.modal-close-button');
-            if(closeButton) {
-                 closeButton.onclick = function() { modal.style.display = "none"; }
+
+            if (modalCloseButton) {
+                 modalCloseButton.onclick = function() { modal.style.display = "none"; }
             }
             window.onclick = function(event) { if (event.target == modal) { modal.style.display = "none"; } }
-        }
+        });
     </script>
+    
+    
 
+    
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         const currentUserId = <?php echo json_encode($professor_id); ?>;
