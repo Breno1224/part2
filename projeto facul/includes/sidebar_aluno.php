@@ -47,6 +47,11 @@ $linkMeuPerfilAluno = "perfil_aluno.php";
         <i class="fas fa-chart-line"></i> Meu Desempenho
     </a>
 </li>
+<li>
+    <a href="aluno_ver_quizzes.php" class="<?php if($currentPageIdentifier == 'ver_quizzes_aluno') echo 'active'; ?>">
+        <i class="fas fa-file-alt"></i> Provas e Quizzes
+    </a>
+</li>
     <li>
         <a href="<?php echo $linkMeuPerfilAluno; ?>" <?php if (isset($currentPageIdentifier) && $currentPageIdentifier === 'meu_perfil_aluno') echo 'class="active"'; ?>>
             <i class="fas fa-user-circle"></i> Meu Perfil

@@ -76,6 +76,326 @@ if ($stmt_notas) {
         <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <?php endif; ?>
     <style>
+        
+        @import url('aluno.css');
+
+/* Ativa o menu da página */
+.sidebar a.active {
+    background-color: #186D6A;
+}
+
+/* Esconde sidebar quando clica no hambúrguer */
+.container.full-width .sidebar {
+    display: none;
+}
+
+/* Título da página com estilo moderno */
+.main-content h2.page-title-boletim {
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 2rem;
+    color: #2C1B17;
+    font-weight: 600;
+    position: relative;
+    padding-bottom: 1rem;
+}
+
+.main-content h2.page-title-boletim::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(90deg, #208A87, #D69D2A);
+    border-radius: 2px;
+}
+
+/* Container da tabela com estilo de card */
+.table-container {
+    overflow-x: auto;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(32, 138, 135, 0.1);
+}
+
+.table-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, #208A87, #D69D2A);
+}
+
+.table-container:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+}
+
+/* Estilo da tabela principal */
+.boletim-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Cabeçalho da tabela */
+.boletim-table thead th {
+    background: linear-gradient(135deg, #D69D2A 0%, #C58624 100%) !important;
+    color: white !important;
+    padding: 16px 12px;
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: none;
+    position: relative;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.boletim-table thead th:first-child {
+    text-align: left;
+    padding-left: 20px;
+}
+
+/* Células do corpo da tabela */
+.boletim-table tbody td {
+    padding: 14px 12px;
+    text-align: center;
+    font-size: 0.9rem;
+    border-bottom: 1px solid rgba(32, 138, 135, 0.1);
+    transition: all 0.3s ease;
+    color: #2C1B17;
+}
+
+.boletim-table tbody td:first-child {
+    text-align: left;
+    padding-left: 20px;
+    font-weight: 600;
+    color: #208A87;
+}
+
+/* Linhas alternadas */
+.boletim-table tbody tr:nth-child(4n+1),
+.boletim-table tbody tr:nth-child(4n+2) {
+    background-color: rgba(32, 138, 135, 0.02);
+}
+
+/* Hover effect nas linhas de matéria */
+.boletim-table tbody tr.subject-row:hover {
+    background: rgba(32, 138, 135, 0.05);
+    cursor: pointer;
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(32, 138, 135, 0.1);
+}
+
+.boletim-table tbody tr.subject-row:hover td {
+    color: #186D6A;
+}
+
+.boletim-table tbody tr.subject-row:hover td:first-child {
+    color: #208A87;
+    font-weight: 700;
+}
+
+/* Linhas de detalhes */
+.details-row {
+    display: none;
+    background: linear-gradient(135deg, rgba(32, 138, 135, 0.03) 0%, rgba(214, 157, 42, 0.03) 100%);
+}
+
+.details-row td {
+    padding: 0;
+    border-bottom: 2px solid rgba(32, 138, 135, 0.1);
+}
+
+.details-content {
+    padding: 20px;
+    text-align: left;
+    border-left: 4px solid #208A87;
+    margin: 10px;
+    border-radius: 8px;
+    background: white;
+    box-shadow: 0 2px 8px rgba(32, 138, 135, 0.1);
+}
+
+.details-content h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+    color: #208A87;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.details-content h4::before {
+    content: '📊';
+    font-size: 1rem;
+}
+
+.details-content ul {
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.details-content li {
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    padding: 8px 12px;
+    background: rgba(32, 138, 135, 0.05);
+    border-radius: 6px;
+    border-left: 3px solid #D69D2A;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.details-content li:hover {
+    background: rgba(32, 138, 135, 0.08);
+    transform: translateX(4px);
+}
+
+.details-content p {
+    margin: 0.8rem 0;
+    font-weight: 600;
+    color: #186D6A;
+}
+
+.details-content p strong {
+    font-weight: 700;
+    color: #208A87;
+}
+
+/* Estados de situação */
+.situacao-aprovado {
+    color: #28a745 !important;
+    font-weight: 700 !important;
+    background: rgba(40, 167, 69, 0.1);
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.situacao-reprovado {
+    color: #dc3545 !important;
+    font-weight: 700 !important;
+    background: rgba(220, 53, 69, 0.1);
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.situacao-cursando {
+    color: #D69D2A !important;
+    font-weight: 700 !important;
+    background: rgba(214, 157, 42, 0.1);
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Mensagem quando não há notas */
+.no-grades td {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+    font-style: italic;
+    background: rgba(32, 138, 135, 0.03);
+    border: 2px dashed rgba(32, 138, 135, 0.2);
+    border-radius: 8px;
+    margin: 10px;
+}
+
+.no-grades td::before {
+    content: '📚';
+    display: block;
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .table-container {
+        margin: 0 -1rem;
+        border-radius: 8px;
+    }
+    
+    .boletim-table thead th,
+    .boletim-table tbody td {
+        padding: 8px 6px;
+        font-size: 0.8rem;
+    }
+    
+    .boletim-table thead th:first-child,
+    .boletim-table tbody td:first-child {
+        padding-left: 10px;
+    }
+    
+    .details-content {
+        padding: 15px;
+        margin: 5px;
+    }
+    
+    .details-content h4 {
+        font-size: 1rem;
+    }
+    
+    .details-content li {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+}
+
+/* Animações suaves */
+.boletim-table tbody tr,
+.details-content,
+.details-content li {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Scroll suave na tabela */
+.table-container {
+    scrollbar-width: thin;
+    scrollbar-color: #208A87 #f1f1f1;
+}
+
+.table-container::-webkit-scrollbar {
+    height: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #208A87, #186D6A);
+    border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #186D6A, #145A57);
+}
         .main-content h2.page-title-boletim { 
             text-align: center; font-size: 1.8rem; margin-bottom: 1.5rem;
         }
