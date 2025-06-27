@@ -68,6 +68,733 @@ $acesso_rapido_links = [
         <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <?php endif; ?>
     <style>
+        /* CSS Professor - ACADMIX */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #F8F9FA 0%, #E9ECEF 100%);
+    color: #2C1B17;
+    line-height: 1.6;
+}
+
+/* Cabeçalho */
+header {
+    background: linear-gradient(135deg, #208A87 0%, #186D6A 100%);
+    color: white;
+    padding: 1.2rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 20px rgba(32, 138, 135, 0.3);
+    position: relative;
+    z-index: 100;
+}
+
+header::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    right: 0;
+    height: 10px;
+    background: linear-gradient(to bottom, rgba(32, 138, 135, 0.1), transparent);
+}
+
+header h1 {
+    font-size: 1.6rem;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    letter-spacing: 0.5px;
+}
+
+header button {
+    background: linear-gradient(135deg, #D69D2A 0%, #C58624 100%);
+    color: white;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 15px rgba(214, 157, 42, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+header button:hover {
+    background: linear-gradient(135deg, #C58624 0%, #B07420 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(214, 157, 42, 0.4);
+}
+
+header button:active {
+    transform: translateY(0);
+}
+
+.menu-btn {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+    padding: 0.6rem !important;
+    border-radius: 12px !important;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.menu-btn:hover {
+    background: rgba(255, 255, 255, 0.3) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    transform: scale(1.05);
+}
+
+/* Layout principal */
+.container {
+    display: flex;
+    flex: 1;
+    gap: 0;
+}
+
+/* Menu lateral */
+.sidebar {
+    width: 260px;
+    background: linear-gradient(180deg, #208A87 0%, #186D6A 100%);
+    padding-top: 1.5rem;
+    height: 100%;
+    min-height: calc(100vh - 80px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 4px 0 20px rgba(32, 138, 135, 0.15);
+    position: relative;
+    overflow: hidden;
+}
+
+.sidebar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0 1rem;
+}
+
+.sidebar ul li {
+    margin-bottom: 0.5rem;
+}
+
+.sidebar ul li a {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.2rem;
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 12px;
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
+}
+
+.sidebar ul li a::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s;
+}
+
+.sidebar ul li a:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    transform: translateX(8px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar ul li a:hover::before {
+    left: 100%;
+}
+
+.sidebar ul li a i {
+    font-size: 1.1rem;
+    width: 20px;
+    text-align: center;
+}
+
+.sidebar ul li a.active {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    font-weight: 600;
+    border-left: 4px solid #D69D2A;
+}
+
+/* Conteúdo principal */
+.main-content {
+    flex: 1;
+    padding: 2.5rem;
+    background: white;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow-x: hidden;
+}
+
+.main-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 200px;
+    background: linear-gradient(135deg, rgba(32, 138, 135, 0.05) 0%, rgba(214, 157, 42, 0.05) 100%);
+    border-radius: 0 0 50px 0;
+    z-index: 0;
+}
+
+.main-content > * {
+    position: relative;
+    z-index: 1;
+}
+
+.main-content h2 {
+    margin-bottom: 1.5rem;
+    color: #2C1B17;
+    font-weight: 600;
+    font-size: 1.8rem;
+}
+
+.main-content h2.section-title {
+    position: relative;
+    padding-bottom: 1rem;
+    margin-bottom: 2rem;
+}
+
+.main-content h2.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(90deg, #208A87, #D69D2A);
+    border-radius: 2px;
+}
+
+.main-content h2.page-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(90deg, #208A87, #D69D2A);
+    border-radius: 2px;
+}
+
+/* Welcome Message Professor */
+.welcome-message-professor {
+    background: linear-gradient(135deg, rgba(32, 138, 135, 0.1) 0%, rgba(214, 157, 42, 0.1) 100%);
+    padding: 2rem;
+    border-radius: 20px;
+    text-align: left;
+    margin-bottom: 3rem;
+    border: 1px solid rgba(32, 138, 135, 0.1);
+    position: relative;
+    overflow: hidden;
+    font-size: 1.6rem;
+    font-weight: 500;
+    color: #208A87;
+}
+
+.welcome-message-professor::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(32, 138, 135, 0.05) 0%, transparent 70%);
+    animation: pulse 4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.3; }
+    50% { transform: scale(1.1); opacity: 0.6; }
+}
+
+/* Dashboard Section */
+.dashboard-section {
+    margin-top: 1.5rem;
+    padding: 2rem;
+    background: white;
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.dashboard-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, #208A87, #D69D2A);
+}
+
+.dashboard-section:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+}
+
+.dashboard-section h3 {
+    margin-bottom: 1.5rem;
+    color: #208A87;
+    font-weight: 600;
+    font-size: 1.4rem;
+    padding-bottom: 0.5rem;
+}
+
+/* Cards */
+.card {
+    margin-top: 1.5rem;
+    padding: 2rem;
+    background: white;
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, #208A87, #D69D2A);
+}
+
+.card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+}
+
+.card h3 {
+    margin-bottom: 1rem;
+    color: #208A87;
+    font-weight: 600;
+    font-size: 1.3rem;
+}
+
+.card ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.card ul li {
+    margin-bottom: 1rem;
+    padding: 0.8rem 1rem;
+    background: rgba(32, 138, 135, 0.03);
+    border-radius: 8px;
+    border-left: 3px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.card ul li:hover {
+    background: rgba(32, 138, 135, 0.06);
+    border-left-color: #208A87;
+    transform: translateX(4px);
+}
+
+/* Quick Access Grid */
+.quick-access-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.quick-access-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.5rem;
+    border-radius: 20px;
+    text-decoration: none;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 140px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+.quick-access-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+    border-radius: 20px;
+    transition: all 0.3s ease;
+}
+
+.quick-access-card:hover {
+    transform: translateY(-12px) scale(1.02);
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.25);
+}
+
+.quick-access-card:hover::before {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 50%);
+}
+
+.quick-access-card i {
+    font-size: 2.8rem;
+    margin-bottom: 1rem;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    transition: transform 0.3s ease;
+}
+
+.quick-access-card:hover i {
+    transform: scale(1.1);
+}
+
+.quick-access-card span {
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: center;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Reminders List */
+.reminders-list ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.reminders-list li {
+    padding: 1rem 0;
+    display: flex;
+    align-items: flex-start;
+    border-bottom: 1px solid rgba(32, 138, 135, 0.1);
+    transition: all 0.3s ease;
+}
+
+.reminders-list li:last-child {
+    border-bottom: none;
+}
+
+.reminders-list li:hover {
+    background: rgba(32, 138, 135, 0.03);
+    padding-left: 1rem;
+    border-radius: 8px;
+}
+
+.reminders-list .reminder-icon {
+    font-size: 1.2rem;
+    margin-right: 1rem;
+    margin-top: 0.2rem;
+    width: 25px;
+    text-align: center;
+}
+
+.reminder-icon.notas {
+    color: #28a745;
+}
+
+.reminder-icon.frequencia {
+    color: #ffc107;
+}
+
+.reminder-icon.planejamento {
+    color: #17a2b8;
+}
+
+.reminder-icon.aviso {
+    color: #dc3545;
+}
+
+.reminders-list .reminder-text a {
+    text-decoration: none;
+    font-weight: 500;
+    color: #2C1B17;
+    transition: color 0.3s ease;
+}
+
+.reminders-list .reminder-text a:hover {
+    text-decoration: underline;
+    color: #208A87;
+}
+
+/* Comunicados List */
+.comunicados-list ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.comunicados-list li {
+    padding: 1.5rem 0;
+    display: flex;
+    align-items: flex-start;
+    border-bottom: 1px solid rgba(32, 138, 135, 0.1);
+    transition: all 0.3s ease;
+}
+
+.comunicados-list li:last-child {
+    border-bottom: none;
+}
+
+.comunicados-list li:hover {
+    background: rgba(32, 138, 135, 0.03);
+    padding-left: 1rem;
+    border-radius: 8px;
+}
+
+.comunicado-item {
+    width: 100%;
+}
+
+.comunicado-item h4 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: #208A87;
+    font-weight: 600;
+}
+
+.comunicado-item .comunicado-date {
+    font-size: 0.85rem;
+    margin-bottom: 0.75rem;
+    color: #666;
+    font-weight: 500;
+}
+
+.comunicado-item p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #555;
+}
+
+/* Card Item */
+.card-item {
+    background: rgba(32, 138, 135, 0.02);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    border-left: 3px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.card-item:hover {
+    background: rgba(32, 138, 135, 0.05);
+    border-left-color: #208A87;
+    transform: translateX(4px);
+}
+
+/* Buttons */
+.button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.5rem;
+    background: linear-gradient(135deg, #208A87 0%, #186D6A 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 25px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-align: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(32, 138, 135, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.button:hover {
+    background: linear-gradient(135deg, #186D6A 0%, #145A57 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(32, 138, 135, 0.4);
+}
+
+.button:hover::before {
+    left: 100%;
+}
+
+.button:active {
+    transform: translateY(0);
+}
+
+.button-logout {
+    background: linear-gradient(135deg, #D69D2A 0%, #C58624 100%) !important;
+    box-shadow: 0 4px 15px rgba(214, 157, 42, 0.3) !important;
+}
+
+.button-logout:hover {
+    background: linear-gradient(135deg, #C58624 0%, #B07420 100%) !important;
+    box-shadow: 0 8px 25px rgba(214, 157, 42, 0.4) !important;
+}
+
+/* No content messages */
+.no-reminders, .no-comunicados {
+    text-align: center;
+    padding: 3rem;
+    font-size: 1.1rem;
+    color: #666;
+    background: rgba(32, 138, 135, 0.03);
+    border-radius: 12px;
+    border: 2px dashed rgba(32, 138, 135, 0.2);
+}
+
+/* Sidebar escondida */
+.sidebar.hidden {
+    transform: translateX(-100%);
+    width: 0;
+    padding: 0;
+    opacity: 0;
+}
+
+.container.full-width .main-content {
+    flex: 1 1 100%;
+    width: 100%;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        min-height: auto;
+        position: fixed;
+        top: 80px;
+        left: 0;
+        z-index: 1000;
+        transform: translateX(-100%);
+    }
+    
+    .sidebar.show {
+        transform: translateX(0);
+    }
+    
+    .main-content {
+        padding: 1.5rem;
+    }
+    
+    .quick-access-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+    }
+    
+    .quick-access-card {
+        padding: 1.5rem 1rem;
+        min-height: 120px;
+    }
+    
+    .quick-access-card i {
+        font-size: 2.2rem;
+    }
+    
+    header {
+        padding: 1rem;
+    }
+    
+    header h1 {
+        font-size: 1.3rem;
+    }
+    
+    .welcome-message-professor {
+        font-size: 1.3rem;
+        padding: 1.5rem;
+    }
+    
+    .dashboard-section {
+        padding: 1.5rem;
+    }
+}
+
+/* Animações suaves */
+.sidebar,
+.main-content {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Scroll suave */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #208A87, #186D6A);
+    border-radius: 4px;
+}
+.chat-header-acad {
+    padding: 10px 15px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #208A87 0%, #186D6A 100%);
+    color: white;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    box-shadow: 0 2px 8px rgba(32, 138, 135, 0.3);
+}
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #186D6A, #145A57);
+}
         /* Estilos da página painel_professor.php */
         .main-content .welcome-message-professor { text-align: left; font-size: 1.6rem; margin-bottom: 1.5rem; font-weight: 500; }
         .dashboard-section { padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; }

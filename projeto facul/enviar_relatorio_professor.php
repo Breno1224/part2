@@ -68,6 +68,924 @@ if ($stmt_relatorios_prepare) {
         <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <?php endif; ?>
     <style>
+        /* Variáveis CSS (Manter as cores e temas existentes) */
+:root {
+    --primary-color: #208A87; /* Cor principal - Verde Água */
+    --primary-color-rgb: 32, 138, 135; /* RGB para uso em rgba() */
+    --primary-color-dark: #186D6A; /* Verde Água mais escuro */
+    --primary-color-light: #66b2b2; /* Verde Água mais claro para o chat enviado */
+
+    --accent-color: #D69D2A; /* Cor de destaque - Dourado/Laranja */
+    --accent-color-rgb: 214, 157, 42; /* RGB para uso em rgba() */
+    --accent-color-dark: #C58624; /* Dourado/Laranja mais escuro */
+    --accent-color-extra-light: #f1f0f0; /* Cinza claro para chat recebido */
+
+    --background-color: #F8F9FA; /* Fundo geral claro */
+    --background-color-offset: #E9ECEF; /* Fundo sutilmente diferente */
+    --card-background: white;
+    --text-color: #2C1B17; /* Texto principal escuro */
+    --text-color-muted: #666; /* Texto secundário */
+    --border-color: #ddd; /* Borda padrão */
+    --border-color-soft: #eee; /* Borda mais suave */
+    --hover-background-color: #f0f0f0; /* Fundo ao passar o mouse */
+
+    --button-text-color: white;
+
+    /* Cores de status/informação */
+    --status-success: #28a745;
+    --status-success-rgb: 40, 167, 69;
+    --status-error: #dc3545;
+    --status-error-rgb: 220, 53, 69;
+    --status-info: #17a2b8;
+    --status-info-rgb: 23, 162, 184;
+}
+
+/* Base e Tipografia */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--background-color) 0%, var(--background-color-offset) 100%);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+/* Cabeçalho */
+header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-dark) 100%);
+    color: var(--button-text-color);
+    padding: 1.2rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 20px rgba(var(--primary-color-rgb), 0.3);
+    position: relative;
+    z-index: 100;
+}
+
+header::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    right: 0;
+    height: 10px;
+    background: linear-gradient(to bottom, rgba(var(--primary-color-rgb), 0.1), transparent);
+}
+
+header h1 {
+    font-size: 1.6rem;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    letter-spacing: 0.5px;
+}
+
+/* Botões */
+.button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.5rem;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-dark) 100%);
+    color: var(--button-text-color);
+    text-decoration: none;
+    border-radius: 25px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-align: center;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(var(--primary-color-rgb), 0.3);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.button:hover {
+    background: linear-gradient(135deg, var(--primary-color-dark) 0%, #145A57 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(var(--primary-color-rgb), 0.4);
+}
+
+.button:active {
+    transform: translateY(0);
+}
+
+.button-logout {
+    background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-color-dark) 100%) !important;
+    box-shadow: 0 4px 15px rgba(var(--accent-color-rgb), 0.3) !important;
+}
+
+.button-logout:hover {
+    background: linear-gradient(135deg, var(--accent-color-dark) 0%, #B07420 100%) !important;
+    box-shadow: 0 8px 25px rgba(var(--accent-color-rgb), 0.4) !important;
+}
+
+.menu-btn {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+    padding: 0.6rem !important;
+    border-radius: 12px !important;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    color: var(--button-text-color);
+}
+
+.menu-btn:hover {
+    background: rgba(255, 255, 255, 0.3) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    transform: scale(1.05);
+}
+
+/* Layout principal */
+.container {
+    display: flex;
+    flex: 1;
+    gap: 0;
+}
+
+/* Menu lateral */
+.sidebar {
+    width: 260px;
+    background: linear-gradient(180deg, var(--primary-color) 0%, var(--primary-color-dark) 100%);
+    padding-top: 1.5rem;
+    height: 100%;
+    min-height: calc(100vh - 80px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 4px 0 20px rgba(var(--primary-color-rgb), 0.15);
+    position: relative;
+    overflow: hidden;
+}
+
+.sidebar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0 1rem;
+}
+
+.sidebar ul li {
+    margin-bottom: 0.5rem;
+}
+
+.sidebar ul li a {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.2rem;
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 12px;
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
+}
+
+.sidebar ul li a::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s;
+}
+
+.sidebar ul li a:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--button-text-color);
+    transform: translateX(8px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar ul li a:hover::before {
+    left: 100%;
+}
+
+.sidebar ul li a i {
+    font-size: 1.1rem;
+    width: 20px;
+    text-align: center;
+}
+
+.sidebar ul li a.active {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--button-text-color);
+    font-weight: 600;
+    border-left: 4px solid var(--accent-color);
+}
+
+/* Conteúdo principal */
+.main-content {
+    flex: 1;
+    padding: 2.5rem;
+    background: var(--card-background);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow-x: hidden;
+}
+
+.main-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 200px;
+    background: linear-gradient(135deg, rgba(var(--primary-color-rgb), 0.05) 0%, rgba(var(--accent-color-rgb), 0.05) 100%);
+    border-radius: 0 0 50px 0;
+    z-index: 0;
+}
+
+.main-content > * {
+    position: relative;
+    z-index: 1;
+}
+
+.main-content h2 {
+    margin-bottom: 1.5rem;
+    color: var(--text-color);
+    font-weight: 600;
+    font-size: 1.8rem;
+}
+
+.main-content h2.section-title {
+    position: relative;
+    padding-bottom: 1rem;
+    margin-bottom: 2rem;
+}
+
+.main-content h2.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+    border-radius: 2px;
+}
+
+.page-title {
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 2rem;
+    padding-bottom: 0.5rem;
+    display: inline-block;
+    position: relative;
+    color: var(--text-color);
+    font-weight: 600;
+}
+
+.page-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+    border-radius: 2px;
+}
+
+/* Cards (Dashboard Sections) */
+.dashboard-section.card {
+    margin-top: 1.5rem;
+    padding: 2rem;
+    background: var(--card-background);
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.dashboard-section.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+}
+
+.dashboard-section.card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+}
+
+.dashboard-section h3 {
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+    font-weight: 600;
+    font-size: 1.3rem;
+}
+
+/* Estilos da página enviar_relatorio_professor.php */
+.form-section, .list-section { 
+    margin-bottom: 2rem;
+    padding: 2rem; /* Consistente com .card */
+    border-radius: 16px; /* Consistente com .card */
+    background: var(--card-background);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.form-section::before, .list-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+}
+
+.form-section:hover, .list-section:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+}
+
+.form-section label {
+    display: block;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    color: var(--text-color);
+}
+
+.input-field {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-size: 1rem;
+    color: var(--text-color);
+    background-color: var(--background-color);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.input-field:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.2);
+}
+
+.form-section textarea {
+    min-height: 150px; /* Aumentado min-height para mais espaço */
+    resize: vertical;
+}
+
+.form-section button[type="submit"] {
+    padding: 0.85rem 2rem; /* Aumentado padding */
+    border: none;
+    border-radius: 25px; /* Mais arredondado */
+    cursor: pointer;
+    font-size: 1.05rem; /* Fonte um pouco maior */
+    margin-top: 2rem; /* Mais margem superior */
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-dark) 100%);
+    color: var(--button-text-color);
+    box-shadow: 0 6px 15px rgba(var(--primary-color-rgb), 0.3);
+    transition: all 0.3s ease;
+    align-self: flex-start; /* Alinha o botão à esquerda */
+}
+
+.form-section button[type="submit"]:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(var(--primary-color-rgb), 0.4);
+}
+
+.status-message {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.status-message.status-success {
+    background-color: rgba(var(--status-success-rgb), 0.1);
+    color: var(--status-success);
+    border: 1px solid var(--status-success);
+}
+
+.status-message.status-error {
+    background-color: rgba(var(--status-error-rgb), 0.1);
+    color: var(--status-error);
+    border: 1px solid var(--status-error);
+}
+
+.info-message {
+    background-color: rgba(var(--status-info-rgb), 0.1);
+    color: var(--status-info);
+    border: 1px solid var(--status-info);
+}
+
+.no-data-message {
+    padding: 2rem;
+    text-align: center;
+    border-radius: 12px;
+    background: rgba(var(--primary-color-rgb), 0.03);
+    border: 2px dashed rgba(var(--primary-color-rgb), 0.2);
+    color: var(--text-color-muted);
+    font-size: 1.1rem;
+}
+
+.list-section table {
+    width: 100%;
+    border-collapse: separate; /* Para border-radius nas células */
+    border-spacing: 0; /* Para remover espaços entre as células */
+    margin-top: 1.5rem;
+    background-color: var(--card-background);
+    border-radius: 8px;
+    overflow: hidden; /* Garante que bordas arredondadas sejam visíveis */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.list-section th, .list-section td {
+    padding: 0.9rem 1.2rem; /* Ajustado padding */
+    text-align: left;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--border-color-soft);
+    color: var(--text-color);
+}
+
+.list-section th {
+    background-color: var(--primary-color);
+    color: var(--button-text-color);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.9em;
+    letter-spacing: 0.05em;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.list-section tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.list-section tbody tr:hover {
+    background-color: var(--hover-background-color);
+}
+
+.list-section .comment-cell {
+    font-style: italic;
+    font-size: 0.9em; /* Ligeiramente maior */
+    color: var(--text-color-muted);
+    line-height: 1.4;
+}
+.list-section .comment-cell small {
+    font-size: 0.85em; /* Mantido pequeno para o nome do coordenador */
+    color: var(--text-color-muted);
+    display: block; /* Garante que o nome do coordenador fique em sua própria linha */
+    margin-top: 5px;
+}
+.list-section .comment-cell em {
+    color: var(--text-color); /* Torna o comentário em si mais visível */
+}
+
+
+/* CSS do Chat Widget */
+.chat-widget-acad {
+    position: fixed;
+    bottom: 0;
+    right: 20px;
+    width: 340px; /* Ligeiramente mais largo */
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
+    z-index: 1000;
+    overflow: hidden;
+    transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.chat-widget-acad.chat-collapsed {
+    height: 55px; /* Um pouco mais alto quando colapsado */
+}
+
+.chat-widget-acad.chat-expanded {
+    height: 500px; /* Um pouco mais alto quando expandido */
+}
+
+.chat-header-acad {
+    padding: 12px 18px; /* Mais padding */
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--primary-color);
+    color: var(--button-text-color);
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+    font-size: 1.1rem;
+}
+
+.chat-header-acad span {
+    font-weight: 600;
+}
+
+.chat-toggle-btn-acad {
+    background: none;
+    border: none;
+    color: var(--button-text-color);
+    font-size: 1.3rem; /* Ícone um pouco maior */
+    cursor: pointer;
+    transition: transform 0.3s ease-in-out;
+}
+
+.chat-expanded .chat-toggle-btn-acad {
+    transform: rotate(180deg);
+}
+
+.chat-body-acad {
+    height: calc(100% - 55px); /* Ajuste com a nova altura do header */
+    display: flex;
+    flex-direction: column;
+    background-color: var(--background-color);
+    border-left: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+#chatUserListScreenAcad, #chatConversationScreenAcad {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.chat-search-container-acad {
+    padding: 10px;
+    border-bottom: 1px solid var(--border-color-soft);
+}
+
+#chatSearchUserAcad {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 25px;
+    box-sizing: border-box;
+    font-size: 0.95em;
+    background-color: var(--background-color-offset);
+    color: var(--text-color);
+}
+
+#chatUserListUlAcad {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+#chatUserListUlAcad li {
+    padding: 10px 15px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border-color-soft);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-color);
+    transition: background-color 0.2s ease;
+}
+
+#chatUserListUlAcad li:hover {
+    background-color: var(--hover-background-color);
+}
+
+#chatUserListUlAcad li img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--primary-color-light);
+}
+
+#chatUserListUlAcad li .chat-user-name-acad {
+    flex-grow: 1;
+    font-size: 1em;
+    font-weight: 500;
+}
+
+.chat-user-professor-acad .chat-user-name-acad {
+    font-weight: bold;
+    color: var(--primary-color-dark);
+}
+
+.chat-user-coordenador-acad .chat-user-name-acad {
+    font-weight: bold;
+    font-style: italic;
+    color: var(--status-info);
+}
+
+.teacher-icon-acad {
+    margin-left: 5px;
+    color: var(--primary-color);
+    font-size: 0.85em;
+}
+
+.student-icon-acad {
+    margin-left: 5px;
+    color: var(--accent-color);
+    font-size: 0.85em;
+}
+
+.coord-icon-acad {
+    margin-left: 5px;
+    color: var(--status-info);
+    font-size: 0.85em;
+}
+
+.chat-conversation-header-acad {
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color-soft);
+    background-color: var(--background-color-offset);
+    gap: 10px;
+}
+
+#chatBackToListBtnAcad {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 5px;
+    color: var(--primary-color);
+    transition: color 0.2s ease;
+}
+
+#chatBackToListBtnAcad:hover {
+    color: var(--primary-color-dark);
+}
+
+.chat-conversation-photo-acad {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--primary-color-light);
+}
+
+#chatConversationUserNameAcad {
+    font-weight: bold;
+    font-size: 1.05em;
+    color: var(--text-color);
+}
+
+#chatMessagesContainerAcad {
+    flex-grow: 1;
+    padding: 15px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    scroll-behavior: smooth;
+}
+
+.message-acad {
+    padding: 10px 15px;
+    border-radius: 20px; /* Mais arredondado */
+    max-width: 80%; /* Aumentar um pouco */
+    word-wrap: break-word;
+    font-size: 0.95em;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.message-acad.sent-acad {
+    background-color: var(--primary-color-light);
+    color: var(--text-color);
+    align-self: flex-end;
+    border-bottom-right-radius: 8px; /* Ajuste para cauda */
+}
+
+.message-acad.received-acad {
+    background-color: var(--accent-color-extra-light);
+    color: var(--text-color);
+    align-self: flex-start;
+    border-bottom-left-radius: 8px; /* Ajuste para cauda */
+}
+
+.message-acad.error-acad {
+    background-color: #f8d7da; /* Vermelho claro */
+    color: #721c24; /* Vermelho escuro */
+    align-self: flex-end;
+    border: 1px solid #f5c6cb;
+}
+
+.chat-message-input-area-acad {
+    display: flex;
+    padding: 10px 15px;
+    border-top: 1px solid var(--border-color-soft);
+    background-color: var(--background-color-offset);
+    gap: 10px;
+    align-items: flex-end;
+}
+
+#chatMessageInputAcad {
+    flex-grow: 1;
+    padding: 10px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 25px;
+    resize: none;
+    font-size: 0.95em;
+    min-height: 40px; /* Altura mínima ajustada */
+    max-height: 100px; /* Altura máxima ajustada */
+    overflow-y: auto;
+    background-color: var(--card-background);
+    color: var(--text-color);
+}
+
+#chatMessageInputAcad:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.1);
+}
+
+#chatSendMessageBtnAcad {
+    background: var(--primary-color);
+    color: var(--button-text-color);
+    border: none;
+    border-radius: 50%;
+    width: 45px; /* Tamanho do botão */
+    height: 45px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem; /* Ícone um pouco maior */
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+#chatSendMessageBtnAcad:hover {
+    background: var(--primary-color-dark);
+    transform: scale(1.05);
+}
+
+/* Sidebar escondida */
+.sidebar.hidden {
+    transform: translateX(-100%);
+    width: 0;
+    padding: 0;
+    opacity: 0;
+}
+
+.container.full-width .main-content {
+    flex: 1 1 100%;
+    width: 100%;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        min-height: auto;
+        position: fixed;
+        top: 80px;
+        left: 0;
+        z-index: 1000;
+        transform: translateX(-100%);
+    }
+
+    .sidebar.show {
+        transform: translateX(0);
+    }
+
+    .main-content {
+        padding: 1.5rem;
+    }
+
+    header {
+        padding: 1rem;
+    }
+
+    header h1 {
+        font-size: 1.3rem;
+    }
+
+    .form-section, .list-section {
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-section label {
+        font-size: 0.95rem;
+        margin-top: 0.8rem;
+    }
+
+    .input-field {
+        padding: 0.6rem;
+        font-size: 0.9rem;
+    }
+
+    .form-section textarea {
+        min-height: 100px;
+    }
+
+    .form-section button[type="submit"] {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.95rem;
+        width: 100%; /* Make button full width on small screens */
+    }
+
+    .list-section th, .list-section td {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.8rem;
+    }
+
+    .list-section .comment-cell {
+        font-size: 0.8em;
+    }
+
+    .no-data-message {
+        padding: 1.5rem;
+        font-size: 1rem;
+    }
+
+    .chat-widget-acad {
+        width: 100%;
+        right: 0;
+        border-radius: 0;
+    }
+    .chat-widget-acad.chat-expanded {
+        height: 80vh; /* Occupy more screen height on mobile */
+    }
+    .chat-header-acad {
+        border-radius: 0;
+    }
+}
+
+/* Animações suaves */
+.sidebar,
+.main-content {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Scroll suave */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-color-dark));
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, var(--primary-color-dark), #145A57);
+}
         /* Estilos da página enviar_relatorio_professor.php */
         .form-section, .list-section { 
             margin-bottom: 2rem; padding: 1.5rem; border-radius: 8px; /* Ajustado border-radius */

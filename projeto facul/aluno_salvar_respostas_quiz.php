@@ -4,7 +4,6 @@ include 'db.php';
 
 // 1. Autenticação e Validação da Requisição
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'aluno' || !isset($_SESSION['usuario_id'])) {
-    // Redireciona se não for um aluno logado
     header("Location: index.html");
     exit();
 }
@@ -65,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['quiz_id'], $_POST['te
 
     } catch (Exception $e) {
         mysqli_rollback($conn);
-        error_log("Erro em salvar_quiz.php: " . $e->getMessage());
+        error_log("Erro em salvar_respostas_quiz.php: " . $e->getMessage());
         $_SESSION['quiz_aluno_status_message'] = "Ocorreu um erro ao salvar suas respostas. Tente novamente.";
         $_SESSION['quiz_aluno_status_type'] = "status-error";
     }

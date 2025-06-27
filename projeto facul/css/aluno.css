@@ -1,3 +1,4 @@
+/* Geral */
 * {
     margin: 0;
     padding: 0;
@@ -223,6 +224,14 @@ header button:active {
     height: 4px;
     background: linear-gradient(90deg, #208A87, #D69D2A);
     border-radius: 2px;
+}
+
+.main-content h2.page-title {
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    display: inline-block;
 }
 
 .main-content h2.page-title::after {
@@ -528,10 +537,6 @@ header button:active {
     box-shadow: 0 8px 25px rgba(32, 138, 135, 0.4);
 }
 
-.button:hover::before, .btn-news-readmore:hover::before {
-    left: 100%;
-}
-
 .button:active, .btn-news-readmore:active {
     transform: translateY(0);
 }
@@ -591,7 +596,7 @@ header button:active {
     .container {
         flex-direction: column;
     }
-    
+
     .sidebar {
         width: 100%;
         min-height: auto;
@@ -601,33 +606,33 @@ header button:active {
         z-index: 1000;
         transform: translateX(-100%);
     }
-    
+
     .sidebar.show {
         transform: translateX(0);
     }
-    
+
     .main-content {
         padding: 1.5rem;
     }
-    
+
     .quick-access-grid {
         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
         gap: 1rem;
     }
-    
+
     .quick-access-card {
         padding: 1.5rem 1rem;
         min-height: 120px;
     }
-    
+
     .quick-access-card i {
         font-size: 2.2rem;
     }
-    
+
     header {
         padding: 1rem;
     }
-    
+
     header h1 {
         font-size: 1.3rem;
     }
@@ -662,3 +667,89 @@ html {
 ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(135deg, #186D6A, #145A57);
 }
+
+/* Estilos estruturais. Cores/fontes de temas_globais.css e aluno.css */
+.main-content h2.section-title { font-size: 1.6rem; margin-top: 2rem; margin-bottom: 1rem; padding-bottom: 0.5rem; }
+.main-content h2.page-title { text-align: center; font-size: 1.8rem; margin-bottom: 1.5rem; padding-bottom: 0.5rem; display: inline-block; }
+.welcome-message-aluno { text-align: center; font-size: 1.5rem; margin-bottom: 2rem; font-weight: 500; }
+
+.quick-access-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+.quick-access-card {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 1.2rem 1rem; border-radius: 8px; text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s; min-height: 110px;
+    color: white; /* Cor do texto específica para estes cards com fundo colorido */
+}
+.quick-access-card:hover { transform: translateY(-5px); }
+.quick-access-card i { font-size: 2.2rem; margin-bottom: 0.7rem; }
+.quick-access-card span { font-size: 0.95rem; font-weight: bold; text-align: center; }
+
+.upcoming-activities ul { list-style: none; padding-left: 0; }
+.upcoming-activities li {
+    padding: 0.8rem 1rem; margin-bottom: 0.7rem; border-radius: 4px; font-size: 0.95rem;
+}
+.upcoming-activities li .activity-date { font-weight: bold; }
+.upcoming-activities li.activity-tipo-trabalho { border-left: 3px solid #17a2b8; }
+.upcoming-activities li.activity-tipo-prova { border-left: 3px solid #dc3545; }
+.upcoming-activities li.activity-tipo-evento { border-left: 3px solid #ffc107; }
+
+.news-feed { display: grid; gap: 1.5rem; }
+.news-item {
+    border-radius: 8px; overflow: hidden; display: flex; flex-direction: column;
+    transition: transform 0.2s ease-in-out;
+}
+.news-item:hover { transform: translateY(-5px); }
+.news-image-container { width: 100%; max-height: 200px; overflow: hidden; }
+.news-image { width: 100%; height: 100%; object-fit: cover; display: block; }
+.news-content { padding: 1rem 1.5rem 1.5rem 1.5rem; flex-grow: 1; display: flex; flex-direction: column; }
+.news-title { font-size: 1.3rem; margin-bottom: 0.5rem; }
+.news-meta { font-size: 0.8rem; margin-bottom: 0.75rem; }
+.news-meta .news-date { font-weight: bold; }
+.news-meta .news-category {
+    padding: 0.2rem 0.5rem; border-radius: 4px;
+}
+.news-summary { font-size: 0.95rem; line-height: 1.6; margin-bottom: 1rem; flex-grow: 1; }
+.btn-news-readmore {
+    display: inline-block; padding: 0.5rem 1rem;
+    text-decoration: none; border-radius: 4px; font-size: 0.9rem;
+    text-align: center; align-self: flex-start; transition: background-color 0.3s;
+}
+.btn-news-readmore i { margin-left: 5px; }
+.no-news, .no-activities { text-align: center; padding: 30px; font-size: 1.2rem; }
+
+/* --- CSS NOVO CHAT ACADÊMICO --- */
+.chat-widget-acad { position: fixed; bottom: 0; right: 20px; width: 320px; border-top-left-radius: 10px; border-top-right-radius: 10px; box-shadow: 0 -2px 10px rgba(0,0,0,0.15); z-index: 1000; overflow: hidden; transition: height 0.3s ease-in-out; }
+.chat-widget-acad.chat-collapsed { height: 45px; }
+.chat-widget-acad.chat-expanded { height: 450px; }
+.chat-header-acad { padding: 10px 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background-color: var(--primary-color, #007bff); color: var(--button-text-color, white); border-top-left-radius: 10px; border-top-right-radius: 10px; }
+.chat-header-acad span { font-weight: bold; }
+.chat-toggle-btn-acad { background: none; border: none; color: var(--button-text-color, white); font-size: 1.2rem; cursor: pointer; transition: transform 0.3s ease-in-out; }
+.chat-expanded .chat-toggle-btn-acad { transform: rotate(180deg); }
+.chat-body-acad { height: calc(100% - 45px); display: flex; flex-direction: column; background-color: var(--background-color, white); border-left: 1px solid var(--border-color, #ddd); border-right: 1px solid var(--border-color, #ddd); border-bottom: 1px solid var(--border-color, #ddd); }
+#chatUserListScreenAcad, #chatConversationScreenAcad { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+.chat-search-container-acad { padding: 8px; }
+#chatSearchUserAcad { width: 100%; padding: 8px 10px; border: 1px solid var(--border-color-soft, #eee); border-radius: 20px; box-sizing: border-box; font-size: 0.9em; }
+#chatUserListUlAcad { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex-grow: 1; }
+#chatUserListUlAcad li { padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--border-color-soft, #eee); display: flex; align-items: center; gap: 10px; color: var(--text-color, #333); }
+#chatUserListUlAcad li:hover { background-color: var(--hover-background-color, #f0f0f0); }
+#chatUserListUlAcad li img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
+#chatUserListUlAcad li .chat-user-name-acad { flex-grow: 1; font-size: 0.9em; }
+.chat-user-professor-acad .chat-user-name-acad { font-weight: bold; }
+.chat-user-coordenador-acad .chat-user-name-acad { font-weight: bold; font-style: italic; }
+.teacher-icon-acad { margin-left: 5px; color: var(--primary-color, #007bff); font-size: 0.9em; }
+.student-icon-acad { margin-left: 5px; color: var(--accent-color, #6c757d); font-size: 0.9em; }
+.coord-icon-acad { margin-left: 5px; color: var(--info-color, #17a2b8); font-size: 0.9em; }
+.chat-conversation-header-acad { padding: 8px 10px; display: flex; align-items: center; border-bottom: 1px solid var(--border-color-soft, #eee); background-color: var(--background-color-offset, #f9f9f9); gap: 10px; }
+#chatBackToListBtnAcad { background: none; border: none; font-size: 1.1rem; cursor: pointer; padding: 5px; color: var(--primary-color, #007bff); }
+.chat-conversation-photo-acad { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
+#chatConversationUserNameAcad { font-weight: bold; font-size: 0.95em; color: var(--text-color, #333); }
+#chatMessagesContainerAcad { flex-grow: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+.message-acad { padding: 8px 12px; border-radius: 15px; max-width: 75%; word-wrap: break-word; font-size: 0.9em; }
+.message-acad.sent-acad { background-color: var(--primary-color-light, #dcf8c6); color: var(--text-color, #333); align-self: flex-end; border-bottom-right-radius: 5px; }
+.message-acad.received-acad { background-color: var(--accent-color-extra-light, #f1f0f0); color: var(--text-color, #333); align-self: flex-start; border-bottom-left-radius: 5px; }
+.message-acad.error-acad { background-color: #f8d7da; color: #721c24; align-self: flex-end; border: 1px solid #f5c6cb;}
+.chat-message-input-area-acad { display: flex; padding: 8px 10px; border-top: 1px solid var(--border-color-soft, #eee); background-color: var(--background-color-offset, #f9f9f9); gap: 8px; }
+#chatMessageInputAcad { flex-grow: 1; padding: 8px 12px; border: 1px solid var(--border-color, #ddd); border-radius: 20px; resize: none; font-size: 0.9em; min-height: 20px; max-height: 80px; overflow-y: auto; }
+#chatSendMessageBtnAcad { background: var(--primary-color, #007bff); color: var(--button-text-color, white); border: none; border-radius: 50%; width: 38px; height: 38px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+#chatSendMessageBtnAcad:hover { background: var(--primary-color-dark, #0056b3); }
+/* --- FIM CSS NOVO CHAT ACADÊMICO --- */

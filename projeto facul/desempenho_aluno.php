@@ -75,6 +75,18 @@ if ($stmt_frequencia) {
         .chart-wrapper { position: relative; height: 350px; width: 100%; }
         .no-data-message { padding: 2rem; text-align: center; }
 
+.chat-header-acad {
+    padding: 10px 15px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #208A87 0%, #186D6A 100%);
+    color: white;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    box-shadow: 0 2px 8px rgba(32, 138, 135, 0.3);
+}
         /* CSS do Chat */
         .chat-widget-acad { position: fixed; bottom: 0; right: 20px; width: 320px; border-top-left-radius: 10px; border-top-right-radius: 10px; box-shadow: 0 -2px 10px rgba(0,0,0,0.15); z-index: 1000; overflow: hidden; transition: height 0.3s ease-in-out; }
         .chat-widget-acad.chat-collapsed { height: 45px; }

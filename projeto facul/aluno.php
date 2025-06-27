@@ -537,7 +537,18 @@ header button:active {
     flex-grow: 1;
     color: #555;
 }
-
+.chat-header-acad {
+    padding: 10px 15px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #208A87 0%, #186D6A 100%);
+    color: white;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    box-shadow: 0 2px 8px rgba(32, 138, 135, 0.3);
+}
 .button, .btn-news-readmore {
     display: inline-flex;
     align-items: center;

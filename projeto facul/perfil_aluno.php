@@ -65,6 +65,18 @@ $temas_disponiveis = [
         <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <?php endif; ?>
     <style>
+        .chat-header-acad {
+    padding: 10px 15px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #208A87 0%, #186D6A 100%);
+    color: white;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    box-shadow: 0 2px 8px rgba(32, 138, 135, 0.3);
+}
         /* Estilos ESTRUTURAIS para a página de perfil. Cores/fontes vêm dos temas. */
         .profile-container { display: flex; flex-direction: column; align-items: center; margin-bottom: 2rem; padding:1rem; }
         .profile-header { text-align: center; margin-bottom: 1.5rem; width:100%;}

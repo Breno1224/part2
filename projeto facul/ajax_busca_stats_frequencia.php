@@ -11,7 +11,6 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'docente') {
 include 'db.php';
 
 $aluno_id = isset($_GET['aluno_id']) ? intval($_GET['aluno_id']) : 0;
-// Incluir turma_id para garantir que a consulta seja no contexto correto (opcional, mas bom para segurança)
 $turma_id = isset($_GET['turma_id']) ? intval($_GET['turma_id']) : 0;
 
 if ($aluno_id === 0 || $turma_id === 0) {
@@ -60,7 +59,7 @@ if ($stmt) {
     mysqli_stmt_close($stmt);
     echo json_encode($stats);
 } else {
-    echo json_encode(['error' => 'Erro ao consultar estatísticas.']);
+    echo json_encode(['error' => 'Erro ao consultar estatísticas do banco de dados.']);
 }
 
 mysqli_close($conn);

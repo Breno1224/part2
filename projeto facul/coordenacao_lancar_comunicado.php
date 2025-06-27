@@ -44,6 +44,1212 @@ if ($stmt_com_prepare) {
         <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <?php endif; ?>
     <style>
+        /* Variáveis de Cores e Temas */
+/* Variáveis de Cores e Temas */
+:root {
+    /* Cores Padrão (Tema Claro) */
+    --primary-color: #208A87;
+    /* Cor principal (verde água) */
+    --primary-color-dark: #186D6A;
+    /* Verde mais escuro */
+    --primary-color-light: #e0f2f2;
+    /* Verde muito claro para chat */
+    --secondary-color: #D69D2A;
+    /* Cor secundária (amarelo/dourado) */
+    --secondary-color-dark: #C58624;
+    /* Amarelo/dourado mais escuro */
+    --background-color: #F8F9FA;
+    /* Fundo geral claro */
+    --background-color-offset: #E9ECEF;
+    /* Fundo para elementos ligeiramente diferentes */
+    --text-color: #2C1B17;
+    /* Cor do texto principal (quase preto) */
+    --text-color-light: #555;
+    /* Texto mais claro */
+    --text-color-alt: #666;
+    /* Texto alternativo */
+    --border-color: #ddd;
+    /* Cor de borda */
+    --border-color-soft: #eee;
+    /* Cor de borda mais suave */
+    --card-background: white;
+    /* Fundo dos cards */
+    --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    /* Sombra dos cards */
+    --card-hover-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+    /* Sombra dos cards no hover */
+    --button-text-color: white;
+    /* Cor do texto em botões */
+    --info-color: #17a2b8;
+    /* Cor para informações (azul) */
+    --success-color: #28a745;
+    /* Cor para sucesso (verde) */
+    --warning-color: #ffc107;
+    /* Cor para aviso (amarelo) */
+    --danger-color: #dc3545;
+    /* Cor para perigo (vermelho) */
+    --tag-background-color: #e9ecef;
+    /* Cor para tags de disciplina */
+    --tag-text-color: #495057;
+    /* Cor do texto em tags */
+    --accent-color: #6c757d;
+    /* Cor de destaque (cinza) */
+    --accent-color-extra-light: #f1f0f0;
+    /* Cinza muito claro para chat */
+    --hover-background-color: #f0f0f0;
+    /* Fundo para hover em listas */
+
+    /* Cores para o tema "8bit" */
+    --8bit-primary-color: #008080;
+    /* Teal escuro */
+    --8bit-primary-color-dark: #005f5f;
+    --8bit-primary-color-light: #d0f0f0;
+    --8bit-secondary-color: #FFD700;
+    /* Dourado */
+    --8bit-secondary-color-dark: #ccaa00;
+    --8bit-background-color: #2c3e50;
+    /* Azul escuro */
+    --8bit-background-color-offset: #34495e;
+    /* Azul escuro mais claro */
+    --8bit-text-color: #ecf0f1;
+    /* Branco/cinza claro */
+    --8bit-text-color-light: #bdc3c7;
+    --8bit-text-color-alt: #95a5a6;
+    --8bit-border-color: #7f8c8d;
+    /* Borda 8bit */
+    --8bit-border-color-soft: #95a5a6;
+    /* Borda suave 8bit */
+    --8bit-card-background: #34495e;
+    /* Fundo dos cards 8bit */
+    --8bit-card-shadow: 8px 8px 0px rgba(0, 0, 0, 0.5);
+    /* Sombra estilo 8bit */
+    --8bit-card-hover-shadow: 12px 12px 0px rgba(0, 0, 0, 0.7);
+    --8bit-button-text-color: #ecf0f1;
+    /* Cor do texto em botões 8bit */
+    --8bit-info-color: #3498db;
+    /* Cor info 8bit */
+    --8bit-success-color: #27ae60;
+    /* Cor sucesso 8bit */
+    --8bit-warning-color: #f39c12;
+    /* Cor aviso 8bit */
+    --8bit-danger-color: #e74c3c;
+    /* Cor perigo 8bit */
+    --8bit-tag-background-color: #4a627a;
+    /* Cor para tags de disciplina 8bit */
+    --8bit-tag-text-color: #ecf0f1;
+    /* Cor do texto em tags 8bit */
+    --8bit-accent-color: #7f8c8d;
+    /* Cor destaque 8bit */
+    --8bit-accent-color-extra-light: #505d6b;
+    /* Cinza muito claro 8bit */
+    --8bit-hover-background-color: #4a627a;
+    /* Fundo hover 8bit */
+}
+
+/* Base Global */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    color: var(--text-color);
+    line-height: 1.6;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Temas globais aplicados ao body */
+body.theme-padrao {
+    background: linear-gradient(135deg, var(--background-color) 0%, var(--background-color-offset) 100%);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body.theme-8bit {
+    background-color: var(--8bit-background-color);
+    color: var(--8bit-text-color);
+    font-family: 'Press Start 2P', cursive;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: auto;
+}
+
+/* Estilos para elementos específicos do tema */
+body.theme-8bit header h1,
+body.theme-8bit .main-content h2.page-title,
+body.theme-8bit .professor-card-header h3 {
+    font-family: 'Press Start 2P', cursive;
+    text-shadow: 3px 3px 0px var(--8bit-primary-color-dark);
+}
+
+body.theme-8bit .card,
+body.theme-8bit .professor-card {
+    border: 2px solid var(--8bit-border-color) !important;
+}
+
+/* Cabeçalho */
+header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-dark) 100%);
+    color: var(--button-text-color);
+    padding: 1.2rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 20px rgba(32, 138, 135, 0.3);
+    position: relative;
+    z-index: 100;
+}
+
+header::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    right: 0;
+    height: 10px;
+    background: linear-gradient(to bottom, rgba(32, 138, 135, 0.1), transparent);
+}
+
+header h1 {
+    font-size: 1.6rem;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    letter-spacing: 0.5px;
+}
+
+header button {
+    background: linear-gradient(135deg, var(--secondary-color) 0%, var(--secondary-color-dark) 100%);
+    color: var(--button-text-color);
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 15px rgba(214, 157, 42, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+header button:hover {
+    background: linear-gradient(135deg, var(--secondary-color-dark) 0%, #B07420 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(214, 157, 42, 0.4);
+}
+
+header button:active {
+    transform: translateY(0);
+}
+
+.menu-btn {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+    padding: 0.6rem !important;
+    border-radius: 12px !important;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.menu-btn:hover {
+    background: rgba(255, 255, 255, 0.3) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    transform: scale(1.05);
+}
+
+/* Layout principal */
+.container {
+    display: flex;
+    flex: 1;
+    gap: 0;
+}
+
+/* Menu lateral */
+.sidebar {
+    width: 260px;
+    background: linear-gradient(180deg, var(--primary-color) 0%, var(--primary-color-dark) 100%);
+    padding-top: 1.5rem;
+    height: 100%;
+    min-height: calc(100vh - 80px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 4px 0 20px rgba(32, 138, 135, 0.15);
+    position: relative;
+    overflow: hidden;
+}
+
+.sidebar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0 1rem;
+}
+
+.sidebar ul li {
+    margin-bottom: 0.5rem;
+}
+
+.sidebar ul li a {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.2rem;
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 12px;
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
+}
+
+.sidebar ul li a::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s;
+}
+
+.sidebar ul li a:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--button-text-color);
+    transform: translateX(8px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar ul li a:hover::before {
+    left: 100%;
+}
+
+.sidebar ul li a.active {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--button-text-color);
+    font-weight: 600;
+    border-left: 4px solid var(--secondary-color);
+}
+
+/* Conteúdo principal */
+.main-content {
+    flex: 1;
+    padding: 2.5rem;
+    background: var(--background-color);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow-x: hidden;
+}
+
+.main-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 200px;
+    background: linear-gradient(135deg, rgba(32, 138, 135, 0.05) 0%, rgba(214, 157, 42, 0.05) 100%);
+    border-radius: 0 0 50px 0;
+    z-index: 0;
+}
+
+body.theme-8bit .main-content::before {
+    background: linear-gradient(135deg, rgba(0, 128, 128, 0.05) 0%, rgba(255, 215, 0, 0.05) 100%);
+}
+
+.main-content > * {
+    position: relative;
+    z-index: 1;
+}
+
+.main-content h2 {
+    margin-bottom: 1.5rem;
+    color: var(--text-color);
+    font-weight: 600;
+    font-size: 1.8rem;
+}
+
+.main-content h2.section-title {
+    position: relative;
+    padding-bottom: 1rem;
+    margin-bottom: 2rem;
+}
+
+.main-content h2.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    border-radius: 2px;
+}
+
+.main-content h2.page-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    border-radius: 2px;
+}
+
+
+/* Professores Section */
+.dashboard-section {
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    background-color: var(--card-background);
+    box-shadow: var(--card-shadow);
+}
+
+body.theme-8bit .dashboard-section {
+    background-color: var(--8bit-card-background);
+    box-shadow: var(--8bit-card-shadow);
+    border: 2px solid var(--8bit-border-color);
+}
+
+.dashboard-section h3 {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
+}
+
+body.theme-8bit .dashboard-section h3 {
+    color: var(--8bit-primary-color);
+    border-bottom: 2px dashed var(--8bit-primary-color);
+}
+
+/* Professor Grid */
+.professor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+/* Professor Card */
+.professor-card {
+    padding: 1.5rem;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--card-background);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease;
+    color: var(--text-color);
+}
+
+body.theme-8bit .professor-card {
+    background-color: var(--8bit-card-background);
+    box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3);
+    color: var(--8bit-text-color);
+    border: 1px dashed var(--8bit-border-color);
+}
+
+.professor-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+body.theme-8bit .professor-card:hover {
+    transform: translate(-4px, -4px);
+    box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.5);
+}
+
+.professor-card-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.professor-photo {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 1rem;
+    border: 2px solid var(--border-color-soft);
+}
+
+body.theme-8bit .professor-photo {
+    border: 2px dashed var(--8bit-border-color-soft);
+}
+
+.professor-info h3 {
+    margin: 0 0 0.3rem 0;
+    font-size: 1.25rem;
+    color: var(--text-color);
+}
+
+body.theme-8bit .professor-info h3 {
+    color: var(--8bit-text-color);
+}
+
+.professor-info p {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.9rem;
+    color: var(--text-color-light);
+}
+
+body.theme-8bit .professor-info p {
+    color: var(--8bit-text-color-light);
+}
+
+.professor-disciplinas {
+    margin-bottom: 1rem;
+}
+
+.professor-disciplinas strong {
+    font-size: 0.95rem;
+    color: var(--primary-color-dark);
+}
+
+body.theme-8bit .professor-disciplinas strong {
+    color: var(--8bit-primary-color-dark);
+}
+
+.disciplinas-list {
+    list-style: none;
+    padding-left: 0;
+    font-size: 0.85rem;
+    margin-top: 0.3rem;
+}
+
+.disciplinas-list li {
+    display: inline-block;
+    background-color: var(--tag-background-color);
+    color: var(--tag-text-color);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+
+body.theme-8bit .disciplinas-list li {
+    background-color: var(--8bit-tag-background-color);
+    color: var(--8bit-tag-text-color);
+    border: 1px dashed var(--8bit-border-color-soft);
+}
+
+
+.professor-actions {
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color-soft);
+    display: flex;
+    justify-content: flex-start;
+    gap: 10px;
+    flex-wrap: wrap;
+    /* Adicionado para responsividade dos botões */
+}
+
+body.theme-8bit .professor-actions {
+    border-top: 1px dashed var(--8bit-border-color-soft);
+}
+
+.professor-actions .button {
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    border-radius: 20px;
+}
+
+/* Botão adicionar novo professor */
+.button-primary {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-dark) 100%);
+    color: var(--button-text-color);
+    box-shadow: 0 4px 15px rgba(32, 138, 135, 0.3);
+}
+
+.button-primary:hover {
+    background: linear-gradient(135deg, var(--primary-color-dark) 0%, #145A57 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(32, 138, 135, 0.4);
+}
+
+body.theme-8bit .button-primary {
+    background: var(--8bit-primary-color);
+    border: 1px solid var(--8bit-border-color);
+    color: var(--8bit-button-text-color);
+    box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.5);
+}
+
+body.theme-8bit .button-primary:hover {
+    background: var(--8bit-primary-color-dark);
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.7);
+}
+
+
+/* Botão Secundário (Ver Perfil) */
+.button-secondary {
+    background: linear-gradient(135deg, var(--accent-color) 0%, #5a6268 100%);
+    color: var(--button-text-color);
+    box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+}
+
+.button-secondary:hover {
+    background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
+    box-shadow: 0 8px 25px rgba(108, 117, 125, 0.4);
+}
+
+body.theme-8bit .button-secondary {
+    background: var(--8bit-accent-color);
+    border: 1px solid var(--8bit-border-color);
+    color: var(--8bit-button-text-color);
+    box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.5);
+}
+
+body.theme-8bit .button-secondary:hover {
+    background: var(--8bit-accent-color-extra-light);
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.7);
+}
+
+
+/* Botão Warning (Editar) */
+.button-warning {
+    background: linear-gradient(135deg, var(--warning-color) 0%, #d39e00 100%);
+    color: var(--button-text-color);
+    box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+}
+
+.button-warning:hover {
+    background: linear-gradient(135deg, #d39e00 0%, #b88a00 100%);
+    box-shadow: 0 8px 25px rgba(255, 193, 7, 0.4);
+}
+
+body.theme-8bit .button-warning {
+    background: var(--8bit-warning-color);
+    border: 1px solid var(--8bit-border-color);
+    color: var(--8bit-button-text-color);
+    box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.5);
+}
+
+body.theme-8bit .button-warning:hover {
+    background: var(--8bit-warning-color);
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.7);
+}
+
+
+/* Botão Danger (Excluir) */
+.button-danger {
+    background: linear-gradient(135deg, var(--danger-color) 0%, #c82333 100%);
+    color: var(--button-text-color);
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+}
+
+.button-danger:hover {
+    background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+    box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4);
+}
+
+body.theme-8bit .button-danger {
+    background: var(--8bit-danger-color);
+    border: 1px solid var(--8bit-border-color);
+    color: var(--8bit-button-text-color);
+    box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.5);
+}
+
+body.theme-8bit .button-danger:hover {
+    background: var(--8bit-danger-color);
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.7);
+}
+
+
+/* Mensagens de status */
+.status-message {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 0.95rem;
+}
+
+.status-message.status-success {
+    background-color: rgba(var(--success-color-rgb, 40, 167, 69), 0.1);
+    border: 1px solid var(--success-color);
+    color: var(--success-color);
+}
+
+.status-message.status-error {
+    background-color: rgba(var(--danger-color-rgb, 220, 53, 69), 0.1);
+    border: 1px solid var(--danger-color);
+    color: var(--danger-color);
+}
+
+body.theme-8bit .status-message.status-success {
+    background-color: rgba(39, 174, 96, 0.1);
+    border: 1px dashed var(--8bit-success-color);
+    color: var(--8bit-success-color);
+}
+
+body.theme-8bit .status-message.status-error {
+    background-color: rgba(231, 76, 60, 0.1);
+    border: 1px dashed var(--8bit-danger-color);
+    color: var(--8bit-danger-color);
+}
+
+
+/* Mensagem de "nenhum dado" */
+.no-data-message {
+    padding: 1rem;
+    text-align: center;
+    border-radius: 4px;
+    background-color: rgba(var(--info-color-rgb, 23, 162, 184), 0.05);
+    border: 1px dashed rgba(var(--info-color-rgb, 23, 162, 184), 0.2);
+    color: var(--text-color-alt);
+}
+
+body.theme-8bit .no-data-message {
+    background-color: rgba(52, 152, 219, 0.05);
+    border: 1px dashed rgba(52, 152, 219, 0.2);
+    color: var(--8bit-text-color-alt);
+}
+
+
+/* Sidebar escondida */
+.sidebar.hidden {
+    transform: translateX(-100%);
+    width: 0;
+    padding: 0;
+    opacity: 0;
+}
+
+/* --- FIX: ADJUST MAIN-CONTENT WHEN SIDEBAR IS HIDDEN TO CENTER --- */
+.container.full-width .main-content {
+    flex: 1 1 auto;
+    /* Allows it to grow/shrink */
+    max-width: 1200px;
+    /* Limit content width for readability on large screens */
+    margin: 0 auto;
+    /* Centers the content horizontally */
+    /* Padding is already defined on .main-content itself */
+}
+
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        min-height: auto;
+        position: fixed;
+        top: 80px;
+        left: 0;
+        z-index: 1000;
+        transform: translateX(-100%);
+        box-shadow: 0 4px 20px rgba(32, 138, 135, 0.2);
+    }
+
+    .sidebar.show {
+        transform: translateX(0);
+    }
+
+    .main-content {
+        padding: 1.5rem;
+        max-width: unset;
+        /* Remove max-width on smaller screens */
+        margin: 0;
+        /* Remove auto margin on smaller screens */
+    }
+
+    header {
+        padding: 1rem;
+    }
+
+    header h1 {
+        font-size: 1.3rem;
+    }
+
+    .professor-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .professor-card {
+        padding: 1rem;
+        text-align: center;
+    }
+
+    .professor-card-header {
+        flex-direction: column;
+        text-align: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .professor-photo {
+        margin-right: 0;
+        margin-bottom: 0.5rem;
+    }
+
+    .professor-info {
+        flex-grow: unset;
+        width: 100%;
+    }
+
+    .professor-info h3 {
+        font-size: 1.1rem;
+    }
+
+    .professor-info p {
+        font-size: 0.8rem;
+    }
+
+    .professor-disciplinas {
+        margin-bottom: 0.8rem;
+        text-align: center;
+    }
+
+    .professor-disciplinas strong {
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .disciplinas-list {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .disciplinas-list li {
+        margin: 3px;
+    }
+
+    .professor-actions {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .professor-actions .button {
+        width: 100%;
+        max-width: 200px;
+        /* Limita o tamanho do botão para não ficar muito largo */
+    }
+}
+
+
+/* Animações suaves */
+.sidebar,
+.main-content {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Scroll suave */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--background-color-offset);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-color-dark));
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, var(--primary-color-dark), #145A57);
+}
+
+body.theme-8bit ::-webkit-scrollbar-track {
+    background: var(--8bit-background-color-offset);
+}
+
+body.theme-8bit ::-webkit-scrollbar-thumb {
+    background: var(--8bit-primary-color);
+    border: 1px solid var(--8bit-border-color);
+}
+
+body.theme-8bit ::-webkit-scrollbar-thumb:hover {
+    background: var(--8bit-primary-color-dark);
+}
+
+
+/* --- INÍCIO CSS NOVO CHAT ACADÊMICO --- */
+.chat-widget-acad {
+    position: fixed;
+    bottom: 0;
+    right: 20px;
+    width: 320px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    overflow: hidden;
+    transition: height 0.3s ease-in-out;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+.chat-widget-acad.chat-collapsed {
+    height: 45px;
+}
+
+.chat-widget-acad.chat-expanded {
+    height: 450px;
+}
+
+.chat-header-acad {
+    padding: 10px 15px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--primary-color);
+    color: var(--button-text-color);
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+.chat-header-acad span {
+    font-weight: bold;
+}
+
+.chat-toggle-btn-acad {
+    background: none;
+    border: none;
+    color: var(--button-text-color);
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: transform 0.3s ease-in-out;
+}
+
+.chat-expanded .chat-toggle-btn-acad {
+    transform: rotate(180deg);
+}
+
+.chat-body-acad {
+    height: calc(100% - 45px);
+    display: flex;
+    flex-direction: column;
+    background-color: var(--background-color);
+    border-left: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+#chatUserListScreenAcad,
+#chatConversationScreenAcad {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.chat-search-container-acad {
+    padding: 8px;
+}
+
+#chatSearchUserAcad {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border-color-soft);
+    border-radius: 20px;
+    box-sizing: border-box;
+    font-size: 0.9em;
+    background-color: var(--background-color-offset);
+    color: var(--text-color);
+}
+
+#chatUserListUlAcad {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+#chatUserListUlAcad li {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border-color-soft);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-color);
+}
+
+#chatUserListUlAcad li:hover {
+    background-color: var(--hover-background-color);
+}
+
+#chatUserListUlAcad li img {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+#chatUserListUlAcad li .chat-user-name-acad {
+    flex-grow: 1;
+    font-size: 0.9em;
+}
+
+.chat-user-professor-acad .chat-user-name-acad {
+    font-weight: bold;
+}
+
+.chat-user-coordenador-acad .chat-user-name-acad {
+    font-weight: bold;
+    font-style: italic;
+}
+
+.teacher-icon-acad {
+    margin-left: 5px;
+    color: var(--primary-color);
+    font-size: 0.9em;
+}
+
+.student-icon-acad {
+    margin-left: 5px;
+    color: var(--accent-color);
+    font-size: 0.9em;
+}
+
+.coord-icon-acad {
+    margin-left: 5px;
+    color: var(--info-color);
+    font-size: 0.9em;
+}
+
+.chat-conversation-header-acad {
+    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color-soft);
+    background-color: var(--background-color-offset);
+    gap: 10px;
+}
+
+#chatBackToListBtnAcad {
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 5px;
+    color: var(--primary-color);
+}
+
+.chat-conversation-photo-acad {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+#chatConversationUserNameAcad {
+    font-weight: bold;
+    font-size: 0.95em;
+    color: var(--text-color);
+}
+
+#chatMessagesContainerAcad {
+    flex-grow: 1;
+    padding: 10px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.message-acad {
+    padding: 8px 12px;
+    border-radius: 15px;
+    max-width: 75%;
+    word-wrap: break-word;
+    font-size: 0.9em;
+}
+
+.message-acad.sent-acad {
+    background-color: var(--primary-color-light);
+    color: var(--text-color);
+    align-self: flex-end;
+    border-bottom-right-radius: 5px;
+}
+
+.message-acad.received-acad {
+    background-color: var(--accent-color-extra-light);
+    color: var(--text-color);
+    align-self: flex-start;
+    border-bottom-left-radius: 5px;
+}
+
+.message-acad.error-acad {
+    background-color: var(--danger-color);
+    color: var(--button-text-color);
+    align-self: flex-end;
+    border: 1px solid var(--danger-color);
+}
+
+.chat-message-input-area-acad {
+    display: flex;
+    padding: 8px 10px;
+    border-top: 1px solid var(--border-color-soft);
+    background-color: var(--background-color-offset);
+    gap: 8px;
+}
+
+#chatMessageInputAcad {
+    flex-grow: 1;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    resize: none;
+    font-size: 0.9em;
+    min-height: 20px;
+    max-height: 80px;
+    overflow-y: auto;
+    background-color: var(--card-background);
+    color: var(--text-color);
+}
+
+#chatSendMessageBtnAcad {
+    background: var(--primary-color);
+    color: var(--button-text-color);
+    border: none;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+#chatSendMessageBtnAcad:hover {
+    background: var(--primary-color-dark);
+}
+
+/* Estilos específicos para o tema 8bit no chat */
+body.theme-8bit .chat-widget-acad {
+    box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.5);
+    border: 2px solid var(--8bit-border-color);
+}
+
+body.theme-8bit .chat-header-acad {
+    background-color: var(--8bit-primary-color);
+    color: var(--8bit-button-text-color);
+    border: 2px solid var(--8bit-border-color);
+    border-bottom: none;
+}
+
+body.theme-8bit .chat-toggle-btn-acad {
+    color: var(--8bit-button-text-color);
+}
+
+body.theme-8bit .chat-body-acad {
+    background-color: var(--8bit-background-color);
+    border: 2px solid var(--8bit-border-color);
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+}
+
+body.theme-8bit #chatSearchUserAcad {
+    background-color: var(--8bit-background-color-offset);
+    color: var(--8bit-text-color);
+    border: 1px dashed var(--8bit-border-color);
+}
+
+body.theme-8bit #chatUserListUlAcad li {
+    color: var(--8bit-text-color);
+    border-bottom: 1px dashed var(--8bit-border-color-soft);
+}
+
+body.theme-8bit #chatUserListUlAcad li:hover {
+    background-color: var(--8bit-hover-background-color);
+}
+
+body.theme-8bit .chat-conversation-header-acad {
+    background-color: var(--8bit-background-color-offset);
+    border-bottom: 1px dashed var(--8bit-border-color-soft);
+}
+
+body.theme-8bit #chatBackToListBtnAcad {
+    color: var(--8bit-primary-color);
+}
+
+body.theme-8bit #chatConversationUserNameAcad {
+    color: var(--8bit-text-color);
+}
+
+body.theme-8bit #chatMessagesContainerAcad {
+    scrollbar-color: var(--8bit-primary-color) var(--8bit-background-color-offset);
+}
+
+body.theme-8bit #chatMessagesContainerAcad::-webkit-scrollbar-thumb {
+    background: var(--8bit-primary-color);
+    border: 1px solid var(--8bit-border-color);
+}
+
+body.theme-8bit #chatMessagesContainerAcad::-webkit-scrollbar-track {
+    background: var(--8bit-background-color-offset);
+}
+
+
+body.theme-8bit .message-acad.sent-acad {
+    background-color: var(--8bit-primary-color-light);
+    color: var(--8bit-text-color);
+}
+
+body.theme-8bit .message-acad.received-acad {
+    background-color: var(--8bit-accent-color-extra-light);
+    color: var(--8bit-text-color);
+}
+
+body.theme-8bit .chat-message-input-area-acad {
+    background-color: var(--8bit-background-color-offset);
+    border-top: 1px dashed var(--8bit-border-color-soft);
+}
+
+body.theme-8bit #chatMessageInputAcad {
+    background-color: var(--8bit-card-background);
+    color: var(--8bit-text-color);
+    border: 1px dashed var(--8bit-border-color);
+}
+
+body.theme-8bit #chatSendMessageBtnAcad {
+    background: var(--8bit-primary-color);
+    color: var(--8bit-button-text-color);
+    border: 1px solid var(--8bit-border-color);
+}
+
+body.theme-8bit #chatSendMessageBtnAcad:hover {
+    background: var(--8bit-primary-color-dark);
+}
         /* Estilos da página coordenacao_lancar_comunicado.php */
         .form-section, .list-section { 
             margin-bottom: 2rem; padding: 1.5rem; border-radius: 8px; /* Ajustado border-radius */
